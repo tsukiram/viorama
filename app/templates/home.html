@@ -1,0 +1,25 @@
+<!-- app/templates/home.html -->
+
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+    <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Welcome, {{ user.username }}!</h1>
+    <p class="text-center text-gray-600 mb-12">Explore Viorama, your virtual AI librarian, to find answers, discover research papers, and save your favorite references.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{{ url_for('general.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">General Inquiries</h2>
+            <p class="text-gray-600">Ask about library information, such as rooms, book locations, or borrowing procedures.</p>
+        </a>
+        <a href="{{ url_for('search.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">Paper Search</h2>
+            <p class="text-gray-600">Search for academic papers and references with AI assistance.</p>
+        </a>
+        <a href="{{ url_for('saved.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">Saved Papers</h2>
+            <p class="text-gray-600">View and manage your saved papers and references.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

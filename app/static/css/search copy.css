@@ -1,0 +1,40 @@
+.modal {
+    transition: opacity 0.3s ease;
+}
+.modal.hidden {
+    display: none;
+}
+#search-steps-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+#chat-container {
+    scrollbar-width: thin;
+    scrollbar-color: #bfdbfe #f3f4f6;
+}
+#chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+#chat-container::-webkit-scrollbar-thumb {
+    background: #bfdbfe;
+    border-radius: 4px;
+}
+#message-input:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+#send-button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+}
+.sidebar {
+    transition: all 0.3s ease;
+}
+.sidebar ul li a:hover, .sidebar ul li a.font-semibold {
+    background-color: #eff6ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}

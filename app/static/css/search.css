@@ -1,0 +1,103 @@
+.modal {
+    transition: opacity 0.3s ease;
+}
+.modal.hidden {
+    display: none;
+}
+#search-steps-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+#chat-container {
+    scrollbar-width: thin;
+    scrollbar-color: #bfdbfe #f3f4f6;
+}
+#chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+#chat-container::-webkit-scrollbar-thumb {
+    background: #bfdbfe;
+    border-radius: 4px;
+}
+#message-input:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+#send-button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+}
+.sidebar {
+    transition: all 0.3s ease;
+}
+.sidebar ul li a:hover, .sidebar ul li a.font-semibold {
+    background-color: #eff6ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Markdown styles for chat content */
+.markdown-content {
+    line-height: 1.6;
+}
+.markdown-content p {
+    margin-bottom: 0.5rem;
+}
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0.75rem 0 0.5rem;
+}
+.markdown-content h1 {
+    font-size: 1.25rem;
+}
+.markdown-content h2 {
+    font-size: 1.125rem;
+}
+.markdown-content h3 {
+    font-size: 1rem;
+}
+.markdown-content ul, .markdown-content ol {
+    margin: 0.5rem 0;
+    padding-left: 2rem;
+}
+.markdown-content ol {
+    list-style-type: decimal;
+}
+.markdown-content ul {
+    list-style-type: disc;
+}
+.markdown-content li {
+    margin-bottom: 0.25rem;
+}
+.markdown-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+.markdown-content a:hover {
+    color: #1e40af;
+}
+.markdown-content strong {
+    font-weight: 600;
+}
+.error {
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+/* Search progress styles */
+#search-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* Space between updates */
+}
+#search-progress-content .mb-1 {
+    padding: 0.25rem 0;
+    line-height: 1.4;
+}
+#search-progress-container {
+    transition: height 0.3s ease; /* Smooth height expansion */
+}

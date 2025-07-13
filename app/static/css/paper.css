@@ -1,0 +1,8 @@
+/* app/static/css/paper.css */
+
+img {
+    transition: transform 0.2s ease;
+}
+img:hover {
+    transform: scale(1.02);
+}

@@ -1,0 +1,121 @@
+/* app/static/css/chat.css */
+
+.chat-container {
+    display: flex;
+    height: calc(100vh - 60px);
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+#new-session-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+#new-session-btn:hover {
+    background-color: #0056b3;
+}
+
+#session-list {
+    list-style: none;
+    padding: 0;
+}
+
+#session-list li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+#session-list li.active {
+    background-color: #007bff;
+    color: white;
+}
+
+#session-list li:hover {
+    background-color: #e0e0e0;
+}
+
+.delete-session-btn {
+    float: right;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.delete-session-btn:hover {
+    background-color: #c82333;
+}
+
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.user-message {
+    text-align: right;
+}
+
+.bot-message {
+    text-align: left;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #666;
+    display: block;
+}
+
+.input-area {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+#chat-input {
+    width: calc(100% - 80px);
+    padding: 10px;
+    resize: none;
+}
+
+#send-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#send-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
