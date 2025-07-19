@@ -1,0 +1,117 @@
+/* app/static/css/home.css */
+/* Styles for the home page */
+
+/* Outer Card Container */
+.home-container {
+    max-width: 1200px;
+    margin: 108px auto 2rem; /* Top: 108px (120px - 10%), Bottom: 2rem for footer spacing */
+    padding: 2rem 1.5rem 48px; /* Top: 2rem, Sides: 1.5rem, Bottom: 48px */
+    font-family: 'Space Grotesk', sans-serif;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(18px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.10);
+    border-radius: 18px;
+}
+
+/* Welcome Title */
+.home-title {
+    font-size: 2.3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+}
+
+/* Subtitle */
+.home-subtitle {
+    font-size: 1.25rem;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Description */
+.home-description {
+    font-size: 1rem;
+    color: #4b5563;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Grid Layout */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Cards */
+.home-card {
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px; /* Softer corners */
+    background: rgba(255, 255, 255, 0.5); /* Subtle background for cards */
+}
+
+/* Card Hover Effect */
+.home-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Card Icon */
+.card-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 1rem;
+    fill: url(#gradient); /* Matches gradient of card-title */
+}
+
+/* Card Title */
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+/* Card Description */
+.card-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .home-container {
+        max-width: 90%;
+        margin: 108px auto 1.5rem; /* Top: 108px, Bottom: 1.5rem for footer spacing */
+        padding: 1.5rem 1.2rem 40px; /* Top: 1.5rem, Sides: 1.2rem, Bottom: 40px */
+        border-radius: 12px;
+    }
+
+    .home-title {
+        font-size: 1.8rem;
+    }
+
+    .home-subtitle {
+        font-size: 1rem;
+    }
+
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-card {
+        border-radius: 10px; /* Even softer corners for smaller screens */
+    }
+}

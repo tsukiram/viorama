@@ -1,24 +1,56 @@
 <!-- app/templates/home.html -->
 
-
 {% extends "base.html" %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto mt-10">
-    <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Welcome, {{ user.username }}!</h1>
-    <p class="text-center text-gray-600 mb-12">Explore Viorama, your virtual AI librarian, to find answers, discover research papers, and save your favorite references.</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="{{ url_for('general.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <h2 class="text-xl font-semibold text-blue-600 mb-2">General Inquiries</h2>
-            <p class="text-gray-600">Ask about library information, such as rooms, book locations, or borrowing procedures.</p>
+<div class="home-container flex mx-auto mt-10 pt-76px pb-40px">
+    <h1 class="home-title">Welcome, {{ user.username }}!</h1>
+    <p class="home-subtitle">Your AI-Powered Research Companion</p>
+    <p class="home-description">Dive into a world of knowledge with your virtual AI librarian, ready to assist with answers, academic papers, and reference management.</p>
+    <div class="home-grid">
+        <a href="{{ url_for('general.index') }}" class="home-card neo-card">
+            <svg class="card-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color: var(--primary);" />
+                        <stop offset="100%" style="stop-color: var(--accent);" />
+                    </linearGradient>
+                </defs>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14a6 6 0 00-6 6c0 2.97 2.16 5.44 5 5.91V14h2v3.91c2.84-.47 5-2.94 5-5.91a6 6 0 00-6-6zm-1 8h2v2h-2v-2z"/>
+            </svg>
+            <h2 class="card-title">General Inquiries</h2>
+            <p class="card-description">Discover library details, from room availability to book locations and borrowing processes.</p>
         </a>
-        <a href="{{ url_for('search.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <h2 class="text-xl font-semibold text-blue-600 mb-2">Paper Search</h2>
-            <p class="text-gray-600">Search for academic papers and references with AI assistance.</p>
+        <a href="{{ url_for('search.index') }}" class="home-card neo-card">
+            <svg class="card-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color: var(--primary);" />
+                        <stop offset="100%" style="stop-color: var(--accent);" />
+                    </linearGradient>
+                </defs>
+                <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 001.48-4.23c0-3.59-2.91-6.5-6.5-6.5S3 6.91 3 10.5s2.91 6.5 6.5 6.5c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 10.5S7.01 7 9.5 7 14 9.01 14 10.5 11.99 14 9.5 14z"/>
+            </svg>
+            <h2 class="card-title">Paper Search</h2>
+            <p class="card-description">Uncover academic papers and references with the power of AI-driven search.</p>
         </a>
-        <a href="{{ url_for('saved.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <h2 class="text-xl font-semibold text-blue-600 mb-2">Saved Papers</h2>
-            <p class="text-gray-600">View and manage your saved papers and references.</p>
+        <a href="{{ url_for('saved.index') }}" class="home-card neo-card">
+            <svg class="card-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color: var(--primary);" />
+                        <stop offset="100%" style="stop-color: var(--accent);" />
+                    </linearGradient>
+                </defs>
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>
+            </svg>
+            <h2 class="card-title">Saved Papers</h2>
+            <p class="card-description">Organize and access your collection of saved papers and references effortlessly.</p>
         </a>
     </div>
 </div>

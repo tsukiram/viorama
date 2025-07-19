@@ -9,31 +9,39 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex max-w-5xl mx-auto mt-10">
-    <div class="w-full bg-white p-6 rounded-lg shadow-md">
-        {% if paper.error %}
-        <p class="text-red-600">{{ paper.error }}</p>
-        {% else %}
-        <h2 class="text-2xl font-bold mb-4 text-blue-600">{{ paper.title }}</h2>
-        <a href="{{ paper.preview_link }}" target="_blank" class="block mb-4">
-            <img src="{{ paper.preview_link | replace('.pdf', '/thumb.png') }}" alt="Cover Image" class="w-full max-w-md h-64 object-cover rounded-lg mx-auto">
-        </a>
-        <p class="text-gray-800 mb-2"><strong>Citation:</strong> {{ paper.citation }}</p>
-        <p class="text-gray-800 mb-2"><strong>Abstract:</strong> {{ paper.abstract }}</p>
-        <p class="text-gray-800 mb-4"><strong>Full Text:</strong> <a href="{{ paper.full_text_link }}" target="_blank" class="text-blue-600 hover:underline">View Full Text</a></p>
-        <p class="text-gray-800 mb-4"><strong>URL:</strong> <a href="{{ paper.url }}" target="_blank" class="text-blue-600 hover:underline">{{ paper.url }}</a></p>
-        <button id="bookmark-button" data-code="{{ paper.code }}" data-saved="{{ 'true' if is_saved else 'false' }}" class="bg-{{ 'red' if is_saved else 'blue' }}-600 text-white px-4 py-2 rounded-lg hover:bg-{{ 'red' if is_saved else 'blue' }}-700">
-            {{ 'Remove from Saved' if is_saved else 'Save to My List' }}
-        </button>
-        {% endif %}
-    </div>
+<div class="paper-container flex mx-auto">
+    <svg class="title-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: var(--primary);" />
+                <stop offset="100%" style="stop-color: var(--accent);" />
+            </linearGradient>
+        </defs>
+        <path d="M4 4v16h16V8h-8V4H4zm10 0v4h4l-4-4zm-8 2h6v4H6V6zm0 6h12v2H6v-2zm0 4h12v2H6v-2z"/>
+    </svg>
+    {% if paper.error %}
+    <p class="paper-error">{{ paper.error }}</p>
+    {% else %}
+    <h2 class="paper-title">{{ paper.title }}</h2>
+    <!-- <a href="{{ paper.preview_link }}" target="_blank" class="block mb-4">
+        <img src="{{ paper.preview_link | replace('.pdf', '/thumb.png') }}" alt="Cover Image" class="paper-image">
+    </a> -->
+    <p class="paper-text"><strong>Citation:</strong> {{ paper.citation }}</p>
+    <p class="paper-text"><strong>Abstract:</strong> {{ paper.abstract }}</p>
+    <p class="paper-text"><strong>Preview Text:</strong> <a href="{{ paper.preview_link }}" target="_blank" class="paper-link">View Full Text</a></p>
+    <p class="paper-text"><strong>Full Text:</strong> <a href="{{ paper.full_text_link }}" target="_blank" class="paper-link">View Full Text</a></p>
+    <p class="paper-text"><strong>URL:</strong> <a href="{{ paper.url }}" target="_blank" class="paper-link">{{ paper.url }}</a></p>
+    <button id="bookmark-button" data-code="{{ paper.code }}" data-saved="{{ 'true' if is_saved else 'false' }}" class="bookmark-button">
+        {{ 'Remove from Saved' if is_saved else 'Save to My List' }}
+    </button>
+    {% endif %}
 </div>
 
 <div id="bookmark-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-        <h3 id="modal-title" class="text-xl font-bold mb-4 text-blue-600"></h3>
-        <p id="modal-message" class="text-gray-800 mb-4"></p>
-        <button id="close-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
+    <div class="modal-content">
+        <h3 id="modal-title" class="modal-title"></h3>
+        <p id="modal-message" class="modal-message"></p>
+        <button id="close-modal" class="close-modal">Close</button>
     </div>
 </div>
 {% endblock %}

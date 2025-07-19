@@ -9,29 +9,36 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex max-w-5xl mx-auto mt-10">
-    <div class="w-full bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6 text-blue-600">Saved Papers, {{ user.username }}!</h2>
-        {% if saved_papers %}
-        <ul class="space-y-4">
-            {% for paper in saved_papers %}
-            <li class="flex justify-between items-center border-b pb-2">
-                <a href="{{ url_for('paper.detail', code=paper.eprint_code) }}" class="text-blue-600 hover:underline">{{ paper.title }}</a>
-                <button class="remove-paper-button text-red-600 hover:text-red-800" data-code="{{ paper.eprint_code }}">Remove</button>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-gray-600">No saved papers yet.</p>
-        {% endif %}
-    </div>
+<div class="paper-container flex mx-auto">
+    <svg class="title-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color: var(--primary);" />
+                <stop offset="100%" style="stop-color: var(--accent);" />
+            </linearGradient>
+        </defs>
+        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/>
+    </svg>
+    <h2 class="paper-title">Saved Papers, {{ user.username }}!</h2>
+    {% if saved_papers %}
+    <ul class="paper-list space-y-4">
+        {% for paper in saved_papers %}
+        <li class="paper-item">
+            <a href="{{ url_for('paper.detail', code=paper.eprint_code) }}" class="paper-link">{{ paper.title }}</a>
+            <button class="remove-paper-button" data-code="{{ paper.eprint_code }}">Remove</button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="no-papers">No saved papers yet.</p>
+    {% endif %}
 </div>
 
 <div id="bookmark-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-        <h3 id="modal-title" class="text-xl font-bold mb-4 text-blue-600"></h3>
-        <p id="modal-message" class="text-gray-800 mb-4"></p>
-        <button id="close-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
+    <div class="modal-content">
+        <h3 id="modal-title" class="modal-title"></h3>
+        <p id="modal-message" class="modal-message"></p>
+        <button id="close-modal" class="close-modal">Close</button>
     </div>
 </div>
 {% endblock %}

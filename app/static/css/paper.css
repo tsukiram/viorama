@@ -1,8 +1,249 @@
 /* app/static/css/paper.css */
+/* Styles for the saved papers and paper detail pages */
 
-img {
-    transition: transform 0.2s ease;
+/* Outer Card Container */
+.paper-container {
+    max-width: 1200px;
+    margin: 108px auto 2rem; /* Top: 108px, Bottom: 2rem for footer spacing */
+    padding: 2rem 1.5rem 48px; /* Top: 2rem, Sides: 1.5rem, Bottom: 48px */
+    font-family: 'Space Grotesk', sans-serif;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(18px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.10);
+    border-radius: 18px;
 }
-img:hover {
-    transform: scale(1.02);
+
+/* Page Title */
+.paper-title {
+    font-size: 2.3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+}
+
+/* Title Icon */
+.title-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 1rem;
+    fill: url(#gradient); /* Matches gradient of paper-title */
+}
+
+/* Paper List (for saved.html) */
+.paper-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.paper-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.paper-item:hover {
+    background: rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+}
+
+.paper-link {
+    font-size: 1rem;
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.paper-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.remove-paper-button {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.remove-paper-button:hover {
+    color: #b91c1c;
+}
+
+/* No Papers Message (for saved.html) */
+.no-papers {
+    font-size: 1rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+/* Paper Detail Styles */
+.paper-image {
+    width: 100%;
+    max-width: 480px;
+    height: 256px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin: 0 auto 1rem;
+    display: block;
+}
+
+.paper-error {
+    font-size: 0.875rem;
+    color: #dc2626;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.paper-text {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+}
+
+.paper-text strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.paper-text a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.paper-text a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.bookmark-button {
+    width: auto;
+    background: linear-gradient(135deg, #7c82fb 0%, #f472b6 100%);
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.12);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bookmark-button[data-saved="true"] {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.bookmark-button:hover {
+    background: linear-gradient(135deg, #a5b4fc 0%, #fb7185 100%);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.15);
+}
+
+.bookmark-button[data-saved="true"]:hover {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.bookmark-button:active {
+    transform: scale(0.98);
+}
+
+/* Modal */
+.modal {
+    display: none; /* Hidden by default, toggled by JS */
+}
+
+.modal.visible {
+    display: flex;
+}
+
+.modal-content {
+    max-width: 480px;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(18px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.10);
+    border-radius: 18px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.modal-message {
+    font-size: 0.875rem;
+    color: #4b5563;
+    margin-bottom: 1rem;
+}
+
+.close-modal {
+    width: 100%;
+    background: linear-gradient(135deg, #7c82fb 0%, #f472b6 100%);
+    color: #fff;
+    padding: 0.8rem;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.12);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.close-modal:hover {
+    background: linear-gradient(135deg, #a5b4fc 0%, #fb7185 100%);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.15);
+}
+
+.close-modal:active {
+    transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .paper-container {
+        max-width: 90%;
+        margin: 108px auto 1.5rem; /* Top: 108px, Bottom: 1.5rem */
+        padding: 1.5rem 1.2rem 40px; /* Top: 1.5rem, Sides: 1.2rem, Bottom: 40px */
+        border-radius: 12px;
+    }
+
+    .paper-title {
+        font-size: 1.8rem;
+    }
+
+    .paper-item {
+        border-radius: 8px;
+    }
+
+    .paper-image {
+        max-width: 100%;
+        height: 200px;
+        border-radius: 10px;
+    }
+
+    .modal-content {
+        max-width: 90%;
+        padding: 1.2rem;
+        border-radius: 12px;
+    }
 }

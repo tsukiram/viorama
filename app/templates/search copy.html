@@ -1,3 +1,4 @@
+<!-- app\templates\search.html -->
 {% extends "base.html" %}
 
 {% block head %}
@@ -7,43 +8,49 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex max-w-5xl mx-auto mt-10">
+<div class="flex max-w-5xl mx-auto mt-10 h-[calc(100vh-120px)]">
     <!-- Sidebar -->
-    <div class="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
+    <div class="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4 overflow-y-auto">
         <h3 class="text-xl font-bold mb-4 text-blue-600">Chat History</h3>
         <button id="new-session-button" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4">New Session</button>
         <ul class="space-y-2">
             {% for session in chat_sessions %}
             <li class="flex justify-between items-center">
-                <a href="{{ url_for('search.index', session_id=session.id) }}" class="block text-blue-600 hover:underline {{ 'font-semibold' if session.id == current_session.id else '' }}">{{ session.title }}</a>
+                <a href="{{ url_for('search.index', session_id=session.id) }}" class="block text-blue-600 hover:underline {{ 'font-semibold bg-blue-50' if session.id == current_session.id else '' }} px-2 py-1 rounded">{{ session.title }}</a>
                 <button class="delete-session-button text-red-600 hover:text-red-800" data-session-id="{{ session.id }}">Delete</button>
             </li>
             {% endfor %}
         </ul>
     </div>
     <!-- Chat Area -->
-    <div class="w-3/4 bg-white p-6 rounded-lg shadow-md">
+    <div class="w-3/4 bg-white p-6 rounded-lg shadow-md flex flex-col">
         <h2 class="text-2xl font-bold mb-6 text-blue-600">Paper Search, {{ user.username }}!</h2>
-        <div id="chat-container" class="h-96 overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
+        <div id="chat-container" class="flex-grow overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
             {% for chat in chats %}
-            <div class="mb-4">
-                <p class="text-sm text-gray-500">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                <p class="font-semibold text-blue-600">You:</p>
-                <p class="text-gray-800">{{ chat.message }}</p>
-                <p class="font-semibold text-blue-600 mt-2">Viorama:</p>
-                <p class="text-gray-800 response-text">{{ chat.response | safe }}</p>
-                {% if chat.search_steps %}
-                <button class="show-steps-button text-sm text-blue-600 hover:underline mt-2 block" data-steps='{{ chat.search_steps | safe }}'>Show Search Process</button>
-                {% endif %}
+            <div class="mb-4 flex {{ 'justify-end' if chat.user_id else 'justify-start' }}">
+                <div class="max-w-[75%] {{ 'bg-blue-100' if chat.user_id else 'bg-gray-100' }} rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 mb-2">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <p class="text-sm font-semibold text-blue-600 mb-1">{{ 'You' if chat.user_id else 'Viorama' }}:</p>
+                    <div class="markdown-content text-gray-800 text-sm">
+                        {% if chat.user_id %}
+                            {{ chat.message | safe if chat.message else '' }}
+                        {% else %}
+                            {{ chat.response | safe if chat.response else '' }}
+                        {% endif %}
+                    </div>
+                    {% if chat.search_steps and not chat.user_id %}
+                    <button class="show-steps-button text-xs text-blue-600 hover:underline mt-2 block" data-steps='{{ chat.search_steps | safe }}'>Show Search Process</button>
+                    {% endif %}
+                </div>
             </div>
             {% endfor %}
             {% if not current_session %}
-            <p class="text-gray-600">Select or create a session to start chatting.</p>
+            <p class="text-gray-600 text-center text-sm">Select or create a session to start chatting.</p>
             {% endif %}
         </div>
-        <div class="flex">
-            <input type="text" id="message-input" class="flex-grow px-3 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Search for papers..." {% if not current_session %}disabled{% endif %}>
-            <button id="send-button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700" {% if not current_session %}disabled{% endif %}>Search</button>
+        <div class="flex mt-4">
+            <input type="text" id="message-input" class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" placeholder="Search for papers..." {% if not current_session %}disabled{% endif %}>
+            <button id="send-button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 text-sm" {% if not current_session %}disabled{% endif %}>Search</button>
         </div>
     </div>
 </div>
@@ -51,7 +58,7 @@
 <div id="search-steps-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full mx-4">
         <h3 class="text-xl font-bold mb-4 text-blue-600">Search Process</h3>
-        <div id="search-steps-content" class="text-gray-800 max-h-80 overflow-y-auto"></div>
+        <div id="search-steps-content" class="text-gray-800 max-h-80 overflow-y-auto text-sm"></div>
         <button id="close-modal" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
     </div>
 </div>

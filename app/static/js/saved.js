@@ -1,3 +1,4 @@
+// app\static\js\saved.js
 document.addEventListener('DOMContentLoaded', () => {
     const removeButtons = document.getElementsByClassName('remove-paper-button');
     const modal = document.getElementById('bookmark-modal');

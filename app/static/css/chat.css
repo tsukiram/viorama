@@ -1,121 +1,574 @@
-/* app/static/css/chat.css */
-
-.chat-container {
+/* Chat Wrapper */
+.chat-wrapper {
     display: flex;
-    height: calc(100vh - 60px);
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - 80px);
+    padding-top: 50px;
+    padding-bottom: 2.5rem;
+    transition: all 0.3s ease;
+}
+
+/* Neo Card Overrides */
+.neo-card, .sidebar {
+    border-radius: 10px;
+}
+
+.neo-card .card-header, .sidebar .card-header {
+    border-radius: 10px 10px 0 0;
+}
+
+.neo-card .card-body, .sidebar .card-body {
+    border-radius: 0 0 10px 10px;
+}
+
+/* Sidebar Styling */
+.sidebar-container {
+    max-height: calc(100vh - 120px);
+    transition: width 0.3s ease, transform 0.3s ease;
+    /* Mengubah transform-origin ke kanan agar mengecil dari kiri ke kanan */
+    transform-origin: right center;
 }
 
 .sidebar {
-    width: 250px;
-    background-color: #f4f4f4;
-    padding: 20px;
-    border-right: 1px solid #ddd;
-    overflow-y: auto;
-}
-
-.sidebar h2 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-}
-
-#new-session-btn {
     width: 100%;
+    transition: width 0.3s ease, transform 0.3s ease;
+    /* Mengubah transform-origin ke kanan agar mengecil dari kiri ke kanan */
+    transform-origin: right center;
+}
+
+.sidebar-collapsed {
+    width: 70px;
+    transform: translateX(0);
+}
+
+.sidebar-collapsed .sidebar-title,
+.sidebar-collapsed .new-session-container,
+.sidebar-collapsed .session-title,
+.sidebar-collapsed .delete-session-button {
+    display: none;
+}
+
+.sidebar-collapsed .title-icon,
+.sidebar-collapsed .session-icon {
+    display: block !important;
+    text-align: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    color: var(--primary);
+}
+
+.sidebar-collapsed .title-icon {
+    margin: 0 auto;
+}
+
+.sidebar-collapsed .session-icon:hover {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.sidebar-collapsed .card-header,
+.sidebar-collapsed .card-body {
+    padding: 0.8rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-collapsed .card-body ul {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-collapsed .card-body ul li {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Chat container akan mendekat ke sidebar saat collapsed */
+.chat-wrapper .chat-container {
+    transition: margin-left 0.3s ease;
+    margin-left: 1rem;
+}
+
+.chat-wrapper.sidebar-collapsed .chat-container {
+    margin-left: 0.5rem;
+}
+
+/* Sidebar Toggle - Square Button */
+.sidebar-toggle {
     padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 40px;
+    height: 40px;
+    margin: 0 8px;
 }
 
-#new-session-btn:hover {
-    background-color: #0056b3;
+.sidebar-collapsed .sidebar-toggle {
+    margin: 0 auto;
 }
 
-#session-list {
-    list-style: none;
-    padding: 0;
+/* Chat Container */
+#chat-container {
+    border-radius: 8px;
+    padding-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--light);
 }
 
-#session-list li {
+#chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-container::-webkit-scrollbar-track {
+    background: var(--light);
+}
+
+#chat-container::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 4px;
+}
+
+/* Chat Bubbles */
+#chat-container .rounded-lg {
+    border-radius: 8px;
+}
+
+#chat-container .mb-4 {
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
     padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #ddd;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-#session-list li.active {
-    background-color: #007bff;
-    color: white;
+.loading-indicator.active {
+    opacity: 1;
 }
 
-#session-list li:hover {
-    background-color: #e0e0e0;
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 4px solid rgba(99, 102, 241, 0.3);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-.delete-session-btn {
-    float: right;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.delete-session-btn:hover {
-    background-color: #c82333;
+/* Form Elements */
+#message-input {
+    border-radius: 8px 0 0 8px;
 }
 
-.chat-area {
-    flex: 1;
+#message-input:disabled {
+    background: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* Buttons */
+.btn-link.text-danger {
+    font-size: 0.9rem;
+}
+
+/* Markdown Styles */
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content p {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    font-weight: 600;
+    color: var(--dark);
+    margin: 0.75rem 0 0.5rem;
+}
+
+.markdown-content h1 {
+    font-size: 1.25rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.125rem;
+}
+
+.markdown-content h3 {
+    font-size: 1rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin: 0.5rem 0;
+    padding-left: 2rem;
+}
+
+.markdown-content ol {
+    list-style-type: decimal;
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+}
+
+.markdown-content li {
+    margin-bottom: 0.25rem;
+}
+
+.markdown-content a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.markdown-content a:hover {
+    color: var(--secondary);
+}
+
+.markdown-content strong {
+    font-weight: 600;
+}
+
+/* Sidebar Links */
+.sidebar ul li a:hover,
+.sidebar ul li a.fw-bold {
+    background-color: rgba(99, 102, 241, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Typography */
+h5 {
+    letter-spacing: -0.03em;
+    color: var(--dark);
+}
+
+.fw-medium {
+    font-weight: 500;
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+.hover-text-secondary:hover {
+    color: var(--secondary);
+    transition: color 0.3s ease;
+}
+
+/* Animations */
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chat-wrapper {
+        padding-top: 50px;
+        padding-bottom: 1.2rem;
+        /* Mengurangi tinggi wrapper untuk mobile */
+        min-height: calc(100vh - 200px);
+    }
+
+    .sidebar-container {
+        /* Mengurangi max-height untuk mobile agar tidak menimpa footer */
+        max-height: calc(100vh - 180px);
+        flex: 0 0 60px;
+        width: 60px;
+        margin-right: 0;
+        /* Mengubah transform-origin untuk mobile */
+        transform-origin: right center;
+    }
+
+    .sidebar-collapsed {
+        width: 60px;
+    }
+
+    .sidebar:not(.sidebar-collapsed) {
+        width: 80vw;
+        position: absolute;
+        z-index: 10;
+        /* Menambahkan max-height untuk sidebar yang terbuka di mobile */
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
+    }
+
+    .chat-container {
+        flex: 1;
+        width: calc(100% - 60px);
+        margin-left: 60px;
+        transition: opacity 0.3s ease, margin-left 0.3s ease;
+    }
+
+    /* Saat collapsed, chat container mendekat ke sidebar */
+    .chat-wrapper.sidebar-collapsed .chat-container {
+        margin-left: 0.5rem;
+    }
+
+    .sidebar:not(.sidebar-collapsed) + .chat-container {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .sidebar-collapsed .title-icon,
+    .sidebar-collapsed .session-icon {
+        font-size: 1rem;
+    }
+
+    .sidebar-toggle {
+        width: 35px;
+        height: 35px;
+        padding: 6px;
+        margin: 0 8px;
+        font-size: 0.9rem;
+    }
+
+    #chat-container {
+        min-height: 300px;
+
+        max-height: calc(100vh - 300px);
+    }
+}
+
+@media (min-width: 992px) {
+    .sidebar-container {
+        flex: 0 0 27%;
+        max-width: 340px;
+        padding-right: 1.5rem;
+    }
+
+    .chat-container {
+        flex: 0 0 73%;
+        max-width: calc(73% - 2.5rem);
+        padding-left: 0;
+    }
+}
+
+@media (min-width: 1200px) {
+    .sidebar-container {
+        max-width: 370px;
+    }
+}
+
+
+@media (min-width: 992px) {
+    .chat-wrapper .container-fluid > .row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      justify-content: center;
+      gap: 0 !important;
+    }
+    .sidebar-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      transition: width 0.3s, min-width 0.3s, max-width 0.3s;
+      min-width: 220px;
+      max-width: 340px;
+      width: 27%;
+      order: 1;
+    }
+    .sidebar-collapsed-row .sidebar-container {
+      min-width: 70px !important;
+      max-width: 70px !important;
+      width: 70px !important;
+      /* flex-shrink: 1; */
+    }
+    .chat-container {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 100%;
+      width: 73%;
+      order: 2;
+      margin-left: 0 !important;
+      transition: margin 0.3s;
+    }
+    .sidebar-collapsed-row .chat-container {
+      margin-left: 0 !important;
+    }
+  }
+  /* DESKTOP: Padding/gap antara sidebar dan chat */
+@media (min-width: 992px) {
+    .chat-wrapper .container-fluid > .row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      gap: 1.2rem !important; /* padding antar sidebar dan chat */
+    }
+    .sidebar-container {
+      order: 1;
+      min-width: 220px;
+      max-width: 340px;
+      width: 27%;
+      transition: width 0.3s, min-width 0.3s, max-width 0.3s;
+    }
+    .sidebar-collapsed-row .sidebar-container {
+      min-width: 70px !important;
+      max-width: 70px !important;
+      width: 70px !important;
+    }
+    .chat-container {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 100%;
+      width: 73%;
+      order: 2;
+      margin-left: 0 !important;
+      transition: margin 0.3s;
+    }
+  }
+  
+  /* SIDEBAR: List scrollable, tidak overflow */
+  .sidebar .card-body {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      padding: 1.5rem;
+      overflow: hidden;
+  }
+  #session-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 300px; /* Atur sesuai tinggi sidebar */
+      overflow-y: auto;
+      margin-bottom: 0;
+      padding-left: 0;
+  }
+  
+/* 4. Sidebar collapsed: lebih lebar agar icon tidak tertimpa scroll */
+
+    .sidebar-collapsed-row .sidebar-container {
+        min-width: 90px !important;
+        max-width: 90px !important;
+        width: 90px !important;
+    }
+    .sidebar-collapsed {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+    }
+    /* Icon tetap di tengah, beri padding agar tidak tertimpa scroll */
+    .sidebar-collapsed .card-body ul {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+    .sidebar-collapsed .card-body ul li {
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0.7rem 0 !important;
+    }
+
+/* 2. Sidebar dan chat area sama tinggi */
+.sidebar-container,
+.chat-container {
+    height: 100%;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-#chat-box {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background-color: #fff;
+
+/* 7. Sidebar collapsed tetap sama tinggi, lebih lebar agar icon tidak tertimpa scroll */
+@media (min-width: 992px) {
+    .chat-wrapper .container-fluid > .row,
+    .chat-wrapper .container-fluid > .row.sidebar-collapsed-row {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        gap: 1.2rem !important;
+        height: 100%;
+        min-height: 100%;
+    }
+    .sidebar-container {
+        order: 1;
+        min-width: 220px;
+        max-width: 340px;
+        width: 27%;
+        transition: width 0.3s, min-width 0.3s, max-width 0.3s;
+    }
+    .sidebar-collapsed-row .sidebar-container {
+        min-width: 90px !important;
+        max-width: 90px !important;
+        width: 90px !important;
+    }
+    .sidebar-collapsed {
+        width: 90px !important;
+        min-width: 90px !important;
+        max-width: 90px !important;
+    }
+    .chat-container {
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: 100%;
+        width: 73%;
+        order: 2;
+        margin-left: 0 !important;
+        transition: margin 0.3s;
+    }
+    .sidebar-collapsed-row .chat-container {
+        margin-left: 0 !important;
+    }
+    /* Icon tetap di tengah, beri padding agar tidak tertimpa scroll */
+    .sidebar-collapsed .card-body ul {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+    .sidebar-collapsed .card-body ul li {
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0.7rem 0 !important;
+    }
 }
 
-.message {
-    margin-bottom: 10px;
-}
-
-.user-message {
-    text-align: right;
-}
-
-.bot-message {
-    text-align: left;
-}
-
-.timestamp {
-    font-size: 0.8em;
-    color: #666;
-    display: block;
-}
-
-.input-area {
-    padding: 10px;
-    border-top: 1px solid #ddd;
-}
-
-#chat-input {
-    width: calc(100% - 80px);
-    padding: 10px;
-    resize: none;
-}
-
-#send-btn {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-#send-btn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
+/* 8. Mobile: tetap responsif, tinggi auto */
+@media (max-width: 991.98px) {
+    .chat-wrapper,
+    .chat-wrapper .container-fluid,
+    .chat-wrapper .container-fluid > .row,
+    .sidebar-container,
+    .chat-container,
+    .sidebar,
+    .neo-card {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    .sidebar .card-body, #session-list {
+        max-height: 200px;
+    }
 }

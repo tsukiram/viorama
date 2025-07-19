@@ -1,8 +1,277 @@
-/* app/static/css/main.css */
+:root {
+    --primary: #6366f1;
+    --secondary: #8b5cf6;
+    --accent: #ec4899;
+    --dark: #1e1e2e;
+    --light: #f8fafc;
+}
 
 body {
-    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(ellipse 60% 40% at 50% 40%, #f3e8ff 0%, #f8fafc 60%, #e0e7ff 100%) !important;
+    position: relative;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
 }
+
+body::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 60% 40%, #e0aaff 0%, #f8fafc 60%, #f3e8ff 100%);
+    opacity: 0.45;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
 .container {
-    max-width: 1200px;
+    max-width: 1280px;
+}
+
+/* Navbar Styling */
+.neo-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: fit-content;
+    margin: 20px auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neo-navbar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 1rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.book-icon {
+    font-size: 1.2rem;
+    animation: page-flip 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.2));
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover .book-icon {
+    animation: page-flip-hover 1s ease-out forwards;
+}
+
+@keyframes page-flip {
+    0%, 100% { transform: rotateY(0deg); }
+    50% { transform: rotateY(-10deg); }
+}
+
+@keyframes page-flip-hover {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(-180deg); }
+}
+
+.nav-link {
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.hover-text-primary {
+    color: var(--dark);
+}
+
+.hover-text-primary:hover {
+    color: var(--primary);
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+.hover-text-danger {
+    color: #dc3545;
+}
+
+.hover-text-danger:hover {
+    color: #dc3545;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+/* Footer Styling */
+.neo-footer {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(18px);
+    border-radius: 18px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    padding: 2.5rem 1.5rem 1.5rem;
+    text-align: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    margin-top: 0;
+}
+
+.social-links a {
+    color: var(--dark);
+    margin: 0 12px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.social-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.social-links a:hover::after {
+    width: 100%;
+}
+
+/* Typography */
+.text-muted {
+    color: #6b7280;
+}
+
+.gradient-text, .main-title {
+    font-size: 2.3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+    text-align: center;
+}
+
+/* Glassmorphism Base Styles */
+.neo-card, .sidebar, #chat-container {
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.10);
+    backdrop-filter: blur(18px);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neo-card .card-header, .sidebar .card-header {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    border-radius: 18px 18px 0 0;
+    padding: 1.5rem;
+}
+
+.neo-card .card-body, .sidebar .card-body {
+    padding: 1.5rem;
+    border-radius: 0 0 18px 18px;
+}
+
+/* Buttons */
+.btn-primary, .sidebar-toggle, #send-button {
+    background: linear-gradient(135deg, #7c82fb 0%, #f472b6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.12);
+    font-weight: 600;
+    padding: 0.8rem 2.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s ease 0.5s, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover, .sidebar-toggle:hover, #send-button:hover {
+    background: linear-gradient(135deg, #a5b4fc 0%, #fb7185 100%);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.15);
+}
+
+.btn-primary::after, .sidebar-toggle::after, #send-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -200%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.4s;
+}
+
+.btn-primary:hover::after, .sidebar-toggle:hover::after, #send-button:hover::after {
+    left: 200%;
+}
+
+.btn-primary:active, .sidebar-toggle:active, #send-button:active {
+    transform: scale(0.98);
+}
+
+/* Inputs */
+#message-input, .form-control {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px solid rgba(99, 102, 241, 0.10);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.04);
+    font-size: 1rem;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+#message-input:focus, .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
+}
+
+/* Chat Bubbles */
+#chat-container .bg-blue-100 {
+    background: rgba(99, 102, 241, 0.10);
+    border: 1.5px solid rgba(99, 102, 241, 0.08);
+    backdrop-filter: blur(6px);
+}
+
+#chat-container .bg-gray-100 {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1.5px solid rgba(99, 102, 241, 0.04);
+    backdrop-filter: blur(6px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .neo-navbar {
+        margin: 15px auto;
+        padding: 8px 15px;
+    }
+
+    .book-icon {
+        font-size: 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 0.9rem;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+    }
+
+    .neo-card, .neo-footer, #chat-container {
+        border-radius: 12px;
+    }
+
+    .gradient-text, .main-title {
+        font-size: 1.3rem;
+    }
 }

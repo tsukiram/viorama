@@ -1,0 +1,1235 @@
+saya ingin kamu merefisi ui saya, saya ingin mavbarnya di tengah, llogonya di samping kiri di luar kotak navbar yang ditengah. saya ingin agar desainnya seperti chat gpt, untuk form unput user, navbar dan session chat,  saya ingin kalau di scroll chatnya dia tidak ikut atau tidak fix.
+
+untuk saat masuk atau lagi tidak ke session chat tertentu, dia tampilannya form chat dan hallo, username (atau apalah bebas tulisannya) di tengah seperti chat pada umumnya. buatkan untuk tombol submitnya panah keatas saja dalam kotakk atau apalah, yang penting elegan. untuk sessionnya bisa di dihe dan di expand, lalu saat di hide dia jadi logo chat di samping dan kalau tambah newchat jadi logo tambah.
+
+kamu jagnan terlalu strict dengan deskripsi saya tapi kamu juga pertimbangkan ux nya yang penting simple, dan palletenya elegan jangan terlalu yang ngejreng dan norak. kamu pertimbangkan semuanya font, color, design, ikon, dan lain lain
+
+ini kode  template saya.
+
+
+
+<!-- app/templates/base.html -->
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viorama - Virtual AI Librarian</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600">Viorama</div>
+            <div class="flex space-x-4 items-center">
+                {% if 'user_id' in session %}
+                <a href="{{ url_for('general.index') }}" class="text-gray-600 hover:text-blue-600">General Inquiries</a>
+                <a href="{{ url_for('search.index') }}" class="text-gray-600 hover:text-blue-600">Paper Search</a>
+                <a href="{{ url_for('saved.index') }}" class="text-gray-600 hover:text-blue-600">Saved Papers</a>
+                <a href="{{ url_for('auth.logout') }}" class="text-red-600 hover:text-red-800">Logout</a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="text-gray-600 hover:text-blue-600">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="text-gray-600 hover:text-blue-600">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto px-4 py-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded relative mb-4" role="alert">
+                        <span class="block sm:inline">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+
+<!-- app\templates\general.html -->
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+<script src="{{ url_for('static', filename='js/general.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-5xl mx-auto mt-10">
+    <!-- Sidebar -->
+    <div class="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4">
+        <h3 class="text-xl font-bold mb-4 text-blue-600">Chat History</h3>
+        <button id="new-session-button" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4">New Session</button>
+        <ul class="space-y-2">
+            {% for session in chat_sessions %}
+            <li class="flex justify-between items-center">
+                <a href="{{ url_for('general.index', session_id=session.id) }}" class="block text-blue-600 hover:underline {{ 'font-semibold' if session.id == current_session.id else '' }}">{{ session.title }}</a>
+                <button class="delete-session-button text-red-600 hover:text-red-800" data-session-id="{{ session.id }}">Delete</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- Chat Area -->
+    <div class="w-3/4 bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">General Chat, {{ user.username }}!</h2>
+        <div id="chat-container" class="h-96 overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
+            {% for chat in chats %}
+            <div class="mb-4">
+                <p class="text-sm text-gray-500">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p class="font-semibold text-blue-600">You:</p>
+                <p class="text-gray-800">{{ chat.message }}</p>
+                <p class="font-semibold text-blue-600 mt-2">Viorama:</p>
+                <p class="text-gray-800">{{ chat.response | safe }}</p>
+            </div>
+            {% endfor %}
+            {% if not current_session %}
+            <p class="text-gray-600">Select or create a session to start chatting.</p>
+            {% endif %}
+        </div>
+        <div class="flex">
+            <input type="text" id="message-input" class="flex-grow px-3 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Type your message..." {% if not current_session %}disabled{% endif %}>
+            <button id="send-button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700" {% if not current_session %}disabled{% endif %}>Send</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- app/templates/home.html -->
+
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+    <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Welcome, {{ user.username }}!</h1>
+    <p class="text-center text-gray-600 mb-12">Explore Viorama, your virtual AI librarian, to find answers, discover research papers, and save your favorite references.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="{{ url_for('general.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">General Inquiries</h2>
+            <p class="text-gray-600">Ask about library information, such as rooms, book locations, or borrowing procedures.</p>
+        </a>
+        <a href="{{ url_for('search.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">Paper Search</h2>
+            <p class="text-gray-600">Search for academic papers and references with AI assistance.</p>
+        </a>
+        <a href="{{ url_for('saved.index') }}" class="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <h2 class="text-xl font-semibold text-blue-600 mb-2">Saved Papers</h2>
+            <p class="text-gray-600">View and manage your saved papers and references.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+<!-- app/templates/login.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-md mx-auto mt-10">
+    <div class="w-full bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">Login</h2>
+        {% if error %}
+        <p class="text-red-600 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Login</button>
+        </form>
+        <p class="mt-4 text-sm text-gray-600">
+            Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-blue-600 hover:underline">Register</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+<!-- app/templates/paper_detail.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/paper.css') }}">
+<script src="{{ url_for('static', filename='js/paper.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-5xl mx-auto mt-10">
+    <div class="w-full bg-white p-6 rounded-lg shadow-md">
+        {% if paper.error %}
+        <p class="text-red-600">{{ paper.error }}</p>
+        {% else %}
+        <h2 class="text-2xl font-bold mb-4 text-blue-600">{{ paper.title }}</h2>
+        <a href="{{ paper.preview_link }}" target="_blank" class="block mb-4">
+            <img src="{{ paper.preview_link | replace('.pdf', '/thumb.png') }}" alt="Cover Image" class="w-full max-w-md h-64 object-cover rounded-lg mx-auto">
+        </a>
+        <p class="text-gray-800 mb-2"><strong>Citation:</strong> {{ paper.citation }}</p>
+        <p class="text-gray-800 mb-2"><strong>Abstract:</strong> {{ paper.abstract }}</p>
+        <p class="text-gray-800 mb-4"><strong>Full Text:</strong> <a href="{{ paper.full_text_link }}" target="_blank" class="text-blue-600 hover:underline">View Full Text</a></p>
+        <p class="text-gray-800 mb-4"><strong>URL:</strong> <a href="{{ paper.url }}" target="_blank" class="text-blue-600 hover:underline">{{ paper.url }}</a></p>
+        <button id="bookmark-button" data-code="{{ paper.code }}" data-saved="{{ 'true' if is_saved else 'false' }}" class="bg-{{ 'red' if is_saved else 'blue' }}-600 text-white px-4 py-2 rounded-lg hover:bg-{{ 'red' if is_saved else 'blue' }}-700">
+            {{ 'Remove from Saved' if is_saved else 'Save to My List' }}
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div id="bookmark-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+        <h3 id="modal-title" class="text-xl font-bold mb-4 text-blue-600"></h3>
+        <p id="modal-message" class="text-gray-800 mb-4"></p>
+        <button id="close-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
+    </div>
+</div>
+{% endblock %}
+
+<!-- app/templates/register.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-md mx-auto mt-10">
+    <div class="w-full bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">Register</h2>
+        {% if error %}
+        <p class="text-red-600 mb-4">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="{{ url_for('auth.register') }}">
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" id="username" name="username" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" required>
+            </div>
+            <div class="mb-4">
+                <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Register</button>
+        </form>
+        <p class="mt-4 text-sm text-gray-600">
+            Already have an account? <a href="{{ url_for('auth.login') }}" class="text-blue-600 hover:underline">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+<!-- app/templates/saved.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/paper.css') }}">
+<script src="{{ url_for('static', filename='js/saved.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-5xl mx-auto mt-10">
+    <div class="w-full bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">Saved Papers, {{ user.username }}!</h2>
+        {% if saved_papers %}
+        <ul class="space-y-4">
+            {% for paper in saved_papers %}
+            <li class="flex justify-between items-center border-b pb-2">
+                <a href="{{ url_for('paper.detail', code=paper.eprint_code) }}" class="text-blue-600 hover:underline">{{ paper.title }}</a>
+                <button class="remove-paper-button text-red-600 hover:text-red-800" data-code="{{ paper.eprint_code }}">Remove</button>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-gray-600">No saved papers yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div id="bookmark-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
+        <h3 id="modal-title" class="text-xl font-bold mb-4 text-blue-600"></h3>
+        <p id="modal-message" class="text-gray-800 mb-4"></p>
+        <button id="close-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
+    </div>
+</div>
+{% endblock %}
+
+<!-- app\templates\search.html -->
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="flex max-w-5xl mx-auto mt-10 h-[calc(100vh-120px)]">
+    <!-- Sidebar -->
+    <div class="w-1/4 bg-white p-4 rounded-lg shadow-md mr-4 overflow-y-auto">
+        <h3 class="text-xl font-bold mb-4 text-blue-600">Chat History</h3>
+        <button id="new-session-button" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-4">New Session</button>
+        <ul class="space-y-2">
+            {% for session in chat_sessions %}
+            <li class="flex justify-between items-center">
+                <a href="{{ url_for('search.index', session_id=session.id) }}" class="block text-blue-600 hover:underline {{ 'font-semibold bg-blue-50' if session.id == current_session.id else '' }} px-2 py-1 rounded">{{ session.title }}</a>
+                <button class="delete-session-button text-red-600 hover:text-red-800" data-session-id="{{ session.id }}">Delete</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- Chat Area -->
+    <div class="w-3/4 bg-white p-6 rounded-lg shadow-md flex flex-col">
+        <h2 class="text-2xl font-bold mb-6 text-blue-600">Paper Search, {{ user.username }}!</h2>
+        <div id="chat-container" class="flex-grow overflow-y-auto mb-4 p-4 border rounded-lg bg-gray-50">
+            {% for chat in chats %}
+            <div class="mb-4 flex {{ 'justify-end' if chat.user_id else 'justify-start' }}">
+                <div class="max-w-[75%] {{ 'bg-blue-100' if chat.user_id else 'bg-gray-100' }} rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 mb-2">{{ chat.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <p class="text-sm font-semibold text-blue-600 mb-1">{{ 'You' if chat.user_id else 'Viorama' }}:</p>
+                    <div class="markdown-content text-gray-800 text-sm">
+                        {% if chat.user_id %}
+                            {{ chat.message | safe if chat.message else '' }}
+                        {% else %}
+                            {{ chat.response | safe if chat.response else '' }}
+                        {% endif %}
+                    </div>
+                    {% if chat.search_steps and not chat.user_id %}
+                    <button class="show-steps-button text-xs text-blue-600 hover:underline mt-2 block" data-steps='{{ chat.search_steps | safe }}'>Show Search Process</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% if not current_session %}
+            <p class="text-gray-600 text-center text-sm">Select or create a session to start chatting.</p>
+            {% endif %}
+        </div>
+        <div class="flex mt-4">
+            <input type="text" id="message-input" class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm" placeholder="Search for papers..." {% if not current_session %}disabled{% endif %}>
+            <button id="send-button" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 text-sm" {% if not current_session %}disabled{% endif %}>Search</button>
+        </div>
+    </div>
+</div>
+
+<div id="search-steps-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full mx-4">
+        <h3 class="text-xl font-bold mb-4 text-blue-600">Search Process</h3>
+        <div id="search-steps-content" class="text-gray-800 max-h-80 overflow-y-auto text-sm"></div>
+        <button id="close-modal" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Close</button>
+    </div>
+</div>
+{% endblock %}
+
+/* app/static/css/auth.css */
+/* Styles for login and register pages */
+.auth-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.auth-container h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.auth-container input {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.auth-container input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.auth-container button {
+    background-color: #2563eb;
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.auth-container button:hover {
+    background-color: #1e40af;
+}
+
+.auth-container p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.auth-container p a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.auth-container p a:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* app/static/css/chat.css */
+
+.chat-container {
+    display: flex;
+    height: calc(100vh - 60px);
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+#new-session-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+#new-session-btn:hover {
+    background-color: #0056b3;
+}
+
+#session-list {
+    list-style: none;
+    padding: 0;
+}
+
+#session-list li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+#session-list li.active {
+    background-color: #007bff;
+    color: white;
+}
+
+#session-list li:hover {
+    background-color: #e0e0e0;
+}
+
+.delete-session-btn {
+    float: right;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.delete-session-btn:hover {
+    background-color: #c82333;
+}
+
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.message {
+    margin-bottom: 10px;
+}
+
+.user-message {
+    text-align: right;
+}
+
+.bot-message {
+    text-align: left;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #666;
+    display: block;
+}
+
+.input-area {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+}
+
+#chat-input {
+    width: calc(100% - 80px);
+    padding: 10px;
+    resize: none;
+}
+
+#send-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#send-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* app/static/css/main.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+.container {
+    max-width: 1200px;
+}
+
+/* app/static/css/paper.css */
+
+img {
+    transition: transform 0.2s ease;
+}
+img:hover {
+    transform: scale(1.02);
+}
+
+.modal {
+    transition: opacity 0.3s ease;
+}
+.modal.hidden {
+    display: none;
+}
+#search-steps-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+#chat-container {
+    scrollbar-width: thin;
+    scrollbar-color: #bfdbfe #f3f4f6;
+}
+#chat-container::-webkit-scrollbar {
+    width: 8px;
+}
+#chat-container::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+#chat-container::-webkit-scrollbar-thumb {
+    background: #bfdbfe;
+    border-radius: 4px;
+}
+#message-input:disabled {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+#send-button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+}
+.sidebar {
+    transition: all 0.3s ease;
+}
+.sidebar ul li a:hover, .sidebar ul li a.font-semibold {
+    background-color: #eff6ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Markdown styles for chat content */
+.markdown-content {
+    line-height: 1.6;
+}
+.markdown-content p {
+    margin-bottom: 0.5rem;
+}
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0.75rem 0 0.5rem;
+}
+.markdown-content h1 {
+    font-size: 1.25rem;
+}
+.markdown-content h2 {
+    font-size: 1.125rem;
+}
+.markdown-content h3 {
+    font-size: 1rem;
+}
+.markdown-content ul, .markdown-content ol {
+    margin: 0.5rem 0;
+    padding-left: 2rem;
+}
+.markdown-content ol {
+    list-style-type: decimal;
+}
+.markdown-content ul {
+    list-style-type: disc;
+}
+.markdown-content li {
+    margin-bottom: 0.25rem;
+}
+.markdown-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+.markdown-content a:hover {
+    color: #1e40af;
+}
+.markdown-content strong {
+    font-weight: 600;
+}
+.error {
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+/* Search progress styles */
+#search-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* Space between updates */
+}
+#search-progress-content .mb-1 {
+    padding: 0.25rem 0;
+    line-height: 1.4;
+}
+#search-progress-container {
+    transition: height 0.3s ease; /* Smooth height expansion */
+}
+
+// app\static\js\general.js
+document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const chatContainer = document.getElementById('chat-container');
+    const newSessionButton = document.getElementById('new-session-button');
+    const deleteSessionButtons = document.getElementsByClassName('delete-session-button');
+    
+    // Get current session ID from the URL or page context
+    const currentSessionId = window.location.pathname.split('/').pop() || null;
+
+    newSessionButton.addEventListener('click', async () => {
+        const title = prompt('Enter a title for the new session:', 'New General Session');
+        if (!title) return;
+
+        try {
+            const response = await fetch('/general/new_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+            const data = await response.json();
+
+            if (data.session_id) {
+                window.location.href = `/general/${data.session_id}`;
+            } else {
+                alert(data.error || 'Failed to create new session');
+            }
+        } catch (error) {
+            alert('Error creating new session');
+        }
+    });
+
+    Array.from(deleteSessionButtons).forEach(button => {
+        button.addEventListener('click', async () => {
+            const sessionId = button.dataset.sessionId;
+            if (confirm('Are you sure you want to delete this session?')) {
+                try {
+                    const response = await fetch(`/general/delete_session/${sessionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+
+                    if (data.message) {
+                        window.location.href = '/general';
+                    } else {
+                        alert(data.error || 'Failed to delete session');
+                    }
+                } catch (error) {
+                    alert('Error deleting session');
+                }
+            }
+        });
+    });
+
+    sendButton.addEventListener('click', async () => {
+        const message = messageInput.value.trim();
+        if (!message || !currentSessionId) return;
+
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-4';
+        messageDiv.innerHTML = `
+            <p class="text-sm text-gray-500">${new Date().toLocaleString()}</p>
+            <p class="font-semibold text-blue-600">You:</p>
+            <p class="text-gray-800">${message}</p>
+            <p class="font-semibold text-blue-600 mt-2">Viorama:</p>
+            <p class="text-gray-800">...</p>
+        `;
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        try {
+            const response = await fetch(`/general/chat/${currentSessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                messageDiv.querySelector('p:last-child').textContent = data.error;
+            } else {
+                messageDiv.innerHTML = `
+                    <p class="text-sm text-gray-500">${data.timestamp}</p>
+                    <p class="font-semibold text-blue-600">You:</p>
+                    <p class="text-gray-800">${message}</p>
+                    <p class="font-semibold text-blue-600 mt-2">Viorama:</p>
+                    <p class="text-gray-800">${data.response}</p>
+                `;
+            }
+        } catch (error) {
+            messageDiv.querySelector('p:last-child').textContent = 'Error: Unable to get response';
+        }
+
+        messageInput.value = '';
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        messageInput.focus();
+    });
+
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendButton.click();
+    });
+});
+
+// app/static/js/paper.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const bookmarkButton = document.getElementById('bookmark-button');
+    const modal = document.getElementById('bookmark-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const closeModalButton = document.getElementById('close-modal');
+
+    bookmarkButton.addEventListener('click', async () => {
+        const code = bookmarkButton.dataset.code;
+        const isSaved = bookmarkButton.dataset.saved === 'true';
+        const endpoint = isSaved ? `/paper/remove/${code}` : `/paper/save/${code}`;
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+
+            modalTitle.textContent = data.error ? 'Error' : 'Success';
+            modalMessage.textContent = data.error || data.message;
+            modal.classList.remove('hidden');
+
+            if (!data.error) {
+                bookmarkButton.dataset.saved = isSaved ? 'false' : 'true';
+                bookmarkButton.textContent = isSaved ? 'Save to My List' : 'Remove from Saved';
+                bookmarkButton.className = isSaved ? 'bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700' : 'bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700';
+            }
+        } catch (error) {
+            modalTitle.textContent = 'Error';
+            modalMessage.textContent = 'Failed to process request';
+            modal.classList.remove('hidden');
+        }
+    });
+
+    closeModalButton.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+});
+
+// app\static\js\saved.js
+document.addEventListener('DOMContentLoaded', () => {
+    const removeButtons = document.getElementsByClassName('remove-paper-button');
+    const modal = document.getElementById('bookmark-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const closeModalButton = document.getElementById('close-modal');
+
+    Array.from(removeButtons).forEach(button => {
+        button.addEventListener('click', async () => {
+            const code = button.dataset.code;
+            try {
+                const response = await fetch(`/paper/remove/${code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                modalTitle.textContent = data.error ? 'Error' : 'Success';
+                modalMessage.textContent = data.error || data.message;
+                modal.classList.remove('hidden');
+
+                if (!data.error) {
+                    button.parentElement.remove();
+                }
+            } catch (error) {
+                modalTitle.textContent = 'Error';
+                modalMessage.textContent = 'Failed to remove paper';
+                modal.classList.remove('hidden');
+            }
+        });
+    });
+
+    closeModalButton.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+});
+
+// app\static\js\search.js
+document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const chatContainer = document.getElementById('chat-container');
+    const modal = document.getElementById('search-steps-modal');
+    const closeModalButton = document.getElementById('close-modal');
+    const stepsContent = document.getElementById('search-steps-content');
+    const newSessionButton = document.getElementById('new-session-button');
+    const deleteSessionButtons = document.getElementsByClassName('delete-session-button');
+    
+    const currentSessionId = window.location.pathname.split('/').pop() || null;
+
+    // Function to convert URLs in text to clickable links
+    function convertUrlsToLinks(text) {
+        // Regular expression to match URLs
+        const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+        return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>');
+    }
+
+    // Function to make links clickable in dynamically added content
+    function makeLinksClickable(container) {
+        // Handle existing /paper/ links
+        const paperLinks = container.querySelectorAll('a[href^="/paper/"]');
+        paperLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = link.getAttribute('href');
+                window.open(href, '_blank');
+            });
+        });
+
+        // Handle HTTP/HTTPS links
+        const httpLinks = container.querySelectorAll('a[href^="http"]');
+        httpLinks.forEach(link => {
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.classList.add('text-blue-600', 'hover:underline');
+        });
+
+        // Convert plain text URLs to clickable links in text nodes
+        const walker = document.createTreeWalker(
+            container,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        const textNodes = [];
+        let node;
+        while (node = walker.nextNode()) {
+            // Skip text nodes that are already inside links
+            if (!node.parentElement.closest('a')) {
+                textNodes.push(node);
+            }
+        }
+
+        textNodes.forEach(textNode => {
+            const text = textNode.textContent;
+            const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
+            if (urlRegex.test(text)) {
+                const newHTML = convertUrlsToLinks(text);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = newHTML;
+                
+                // Replace the text node with the new HTML
+                const fragment = document.createDocumentFragment();
+                while (tempDiv.firstChild) {
+                    fragment.appendChild(tempDiv.firstChild);
+                }
+                textNode.parentNode.replaceChild(fragment, textNode);
+            }
+        });
+    }
+
+    // Function to parse and create HTML from response
+    function createHTMLFromResponse(response) {
+        if (!response) {
+            console.error('Response is empty or null');
+            return '<div class="text-red-700">Error: No response received</div>';
+        }
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = response;
+        makeLinksClickable(tempDiv);
+        return tempDiv.innerHTML;
+    }
+
+    // Function to create search progress container
+    function createSearchProgressContainer() {
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'mb-4 flex justify-start';
+        progressDiv.id = 'search-progress-container';
+        progressDiv.innerHTML = `
+            <div class="max-w-[75%] bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
+                <p class="text-xs text-gray-500 mb-2">${new Date().toLocaleString()}</p>
+                <p class="text-sm font-semibold text-blue-600 mb-2">Search Process:</p>
+                <div id="search-progress-content" class="text-gray-700 text-sm font-mono">
+                    <div class="animate-pulse">Initializing search...</div>
+                </div>
+            </div>
+        `;
+        chatContainer.appendChild(progressDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        return progressDiv;
+    }
+
+    // Function to update search progress
+    function updateSearchProgress(update) {
+        const progressContent = document.getElementById('search-progress-content');
+        if (progressContent) {
+            const updateDiv = document.createElement('div');
+            updateDiv.className = 'mb-1';
+            updateDiv.textContent = update;
+            progressContent.appendChild(updateDiv);
+            const initialPulse = progressContent.querySelector('.animate-pulse');
+            if (initialPulse) initialPulse.remove();
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    }
+
+    // Function to show typing indicator
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'mb-4 flex justify-start';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = `
+            <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span class="text-sm text-gray-600">Viorama is thinking...</span>
+                </div>
+            </div>
+        `;
+        chatContainer.appendChild(typingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Function to remove typing indicator
+    function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    // Make existing links clickable on page load
+    makeLinksClickable(document);
+
+    newSessionButton.addEventListener('click', async () => {
+        const title = prompt('Enter a title for the new session:', 'New Search Session');
+        if (!title) return;
+
+        try {
+            const response = await fetch('/search/new_session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+            const data = await response.json();
+
+            if (data.session_id) {
+                window.location.href = `/search/${data.session_id}`;
+            } else {
+                alert(data.error || 'Failed to create new session');
+            }
+        } catch (error) {
+            alert('Error creating new session');
+        }
+    });
+
+    Array.from(deleteSessionButtons).forEach(button => {
+        button.addEventListener('click', async () => {
+            const sessionId = button.dataset.sessionId;
+            if (confirm('Are you sure you want to delete this session?')) {
+                try {
+                    const response = await fetch(`/search/delete_session/${sessionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const data = await response.json();
+
+                    if (data.message) {
+                        window.location.href = '/search';
+                    } else {
+                        alert(data.error || 'Failed to delete session');
+                    }
+                } catch (error) {
+                    alert('Error deleting session');
+                }
+            }
+        });
+    });
+
+    sendButton.addEventListener('click', async () => {
+        const message = messageInput.value.trim();
+        if (!message || !currentSessionId) return;
+
+        // Disable input during processing
+        messageInput.disabled = true;
+        sendButton.disabled = true;
+        sendButton.textContent = 'Processing...';
+
+        // Add user message
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'mb-4 flex justify-end';
+        userMessageDiv.id = `message-${Date.now()}`;
+        userMessageDiv.innerHTML = `
+            <div class="max-w-[75%] bg-blue-100 rounded-lg p-4 shadow-sm">
+                <p class="text-xs text-gray-500 mb-2">${new Date().toLocaleString()}</p>
+                <p class="text-sm font-semibold text-blue-600 mb-1">You:</p>
+                <div class="markdown-content text-gray-800 text-sm">${convertUrlsToLinks(message)}</div>
+            </div>
+        `;
+        chatContainer.appendChild(userMessageDiv);
+        makeLinksClickable(userMessageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        try {
+            // Get initial response
+            showTypingIndicator();
+            const response = await fetch(`/search/chat/${currentSessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const data = await response.json();
+            removeTypingIndicator();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Server error');
+            }
+
+            // Add initial response
+            const initialResponseDiv = document.createElement('div');
+            initialResponseDiv.className = 'mb-4 flex justify-start';
+            initialResponseDiv.id = `initial-response-${data.chat_id}`;
+            initialResponseDiv.innerHTML = `
+                <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-gray-500 mb-2">${data.timestamp}</p>
+                    <p class="text-sm font-semibold text-blue-600 mb-1">Viorama:</p>
+                    <div class="markdown-content text-gray-800 text-sm">${createHTMLFromResponse(data.initial_response)}</div>
+                </div>
+            `;
+            chatContainer.appendChild(initialResponseDiv);
+            makeLinksClickable(initialResponseDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            // If search is needed, show search progress with SSE
+            if (data.needs_search && data.system_output) {
+                createSearchProgressContainer();
+                
+                // Log the SSE URL for debugging
+                const sseUrl = `/search/search_process/${data.chat_id}?system_output=${encodeURIComponent(data.system_output)}`;
+                console.log('Initiating SSE request (GET):', sseUrl);
+                
+                // Use EventSource for real-time updates
+                const source = new EventSource(sseUrl);
+                
+                source.onmessage = (event) => {
+                    try {
+                        const searchData = JSON.parse(event.data);
+                        console.log('SSE data received:', searchData);
+                        
+                        if (searchData.update) {
+                            updateSearchProgress(searchData.update);
+                        }
+                        
+                        if (searchData.complete) {
+                            source.close();
+                            const progressContainer = document.getElementById('search-progress-container');
+                            if (progressContainer) {
+                                progressContainer.remove();
+                            }
+                            
+                            // Display enhanced response or fallback
+                            const finalResponseDiv = document.createElement('div');
+                            finalResponseDiv.className = 'mb-4 flex justify-start';
+                            finalResponseDiv.id = `enhanced-response-${data.chat_id}`;
+                            finalResponseDiv.innerHTML = `
+                                <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
+                                    <p class="text-xs text-gray-500 mb-2">${searchData.timestamp}</p>
+                                    <p class="text-sm font-semibold text-blue-600 mb-1">Viorama (Search Result):</p>
+                                    <div class="markdown-content text-gray-800 text-sm">${createHTMLFromResponse(searchData.enhanced_response || 'No enhanced response received.')}</div>
+                                    <button class="show-steps-button text-xs text-blue-600 hover:underline mt-2 block" data-steps='${JSON.stringify(searchData.search_updates || [])}'>Show Search Process</button>
+                                </div>
+                            `;
+                            chatContainer.appendChild(finalResponseDiv);
+                            makeLinksClickable(finalResponseDiv);
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing SSE data:', parseError);
+                        updateSearchProgress(`Error processing search updates: ${parseError.message}`);
+                    }
+                };
+                
+                source.onerror = () => {
+                    console.error('SSE connection error');
+                    source.close();
+                    updateSearchProgress('Search failed: Connection error');
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'mb-4 flex justify-start';
+                    errorDiv.innerHTML = `
+                        <div class="max-w-[75%] bg-red-100 border border-red-300 rounded-lg p-4 shadow-sm">
+                            <p class="text-xs text-red-500 mb-2">${new Date().toLocaleString()}</p>
+                            <p class="text-sm font-semibold text-red-600 mb-1">Error:</p>
+                            <div class="text-red-700 text-sm">Failed to complete search. Please try again.</div>
+                        </div>
+                    `;
+                    chatContainer.appendChild(errorDiv);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                };
+            }
+
+        } catch (error) {
+            removeTypingIndicator();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mb-4 flex justify-start';
+            errorDiv.innerHTML = `
+                <div class="max-w-[75%] bg-red-100 border border-red-300 rounded-lg p-4 shadow-sm">
+                    <p class="text-xs text-red-500 mb-2">${new Date().toLocaleString()}</p>
+                    <p class="text-sm font-semibold text-red-600 mb-1">Error:</p>
+                    <div class="text-red-700 text-sm">${error.message}</div>
+                </div>
+            `;
+            chatContainer.appendChild(errorDiv);
+            console.error('Fetch error:', error);
+        }
+
+        // Re-enable input
+        messageInput.value = '';
+        messageInput.disabled = false;
+        sendButton.disabled = false;
+        sendButton.textContent = 'Search';
+        messageInput.focus();
+    });
+
+    messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendButton.click();
+    });
+
+    chatContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('show-steps-button')) {
+            try {
+                const steps = JSON.parse(e.target.dataset.steps);
+                stepsContent.innerHTML = steps.map(step => `<p class="text-sm mb-1">${convertUrlsToLinks(step)}</p>`).join('');
+                makeLinksClickable(stepsContent);
+                modal.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error parsing search steps:', error);
+                stepsContent.innerHTML = '<p class="text-sm mb-1">Error loading search steps</p>';
+                modal.classList.remove('hidden');
+            }
+        }
+    });
+
+    closeModalButton.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+    });
+});
+
+
+pastikan tidak ada yang salah fungsionalitasnya 

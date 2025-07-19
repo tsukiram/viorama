@@ -1,3 +1,4 @@
+// app\static\js\search.js
 document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');

@@ -1,43 +1,71 @@
-<!-- app/templates/base.html -->
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viorama - Virtual AI Librarian</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>{% block title %}Viorama{% endblock %} - Virtual AI Librarian</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-dark-glass.css') }}">
     {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-white shadow-md">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="text-2xl font-bold text-blue-600">Viorama</div>
-            <div class="flex space-x-4 items-center">
+<body class="d-flex flex-column">
+    <nav class="neo-navbar fixed-top">
+        <div class="container-fluid d-flex align-items-center justify-content-between gap-3">
+            <div class="navbar-brand d-flex align-items-center">
+                <i class="fas fa-book book-icon" style="color: var(--primary);"></i>
+                <a href="{{ url_for('home.index') }}" class="ms-2">Viorama</a>
+            </div>
+            <div class="d-flex align-items-center gap-3">
                 {% if 'user_id' in session %}
-                <a href="{{ url_for('general.index') }}" class="text-gray-600 hover:text-blue-600">General Inquiries</a>
-                <a href="{{ url_for('search.index') }}" class="text-gray-600 hover:text-blue-600">Paper Search</a>
-                <a href="{{ url_for('saved.index') }}" class="text-gray-600 hover:text-blue-600">Saved Papers</a>
-                <a href="{{ url_for('auth.logout') }}" class="text-red-600 hover:text-red-800">Logout</a>
+                <a href="{{ url_for('general.index') }}" class="nav-link text-dark hover-text-primary">General Inquiries</a>
+                <a href="{{ url_for('search.index') }}" class="nav-link text-dark hover-text-primary">Paper Search</a>
+                <a href="{{ url_for('saved.index') }}" class="nav-link text-dark hover-text-primary">Saved Papers</a>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                {% if 'user_id' in session %}
+                <a href="{{ url_for('auth.logout') }}" class="nav-link text-danger hover-text-danger">Logout</a>
                 {% else %}
-                <a href="{{ url_for('auth.login') }}" class="text-gray-600 hover:text-blue-600">Login</a>
-                <a href="{{ url_for('auth.register') }}" class="text-gray-600 hover:text-blue-600">Register</a>
+                <a href="{{ url_for('auth.login') }}" class="nav-link text-dark hover-text-primary">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="nav-link text-dark hover-text-primary">Register</a>
                 {% endif %}
             </div>
         </div>
     </nav>
-    <div class="container mx-auto px-4 py-6">
+    <main class="container flex-grow-1">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded relative mb-4" role="alert">
-                        <span class="block sm:inline">{{ message }}</span>
+                <div class="row justify-content-center mt-5">
+                    <div class="col-md-10 col-lg-8">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'primary' if category == 'success' else 'danger' }} alert-dismissible fade show neo-card" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}
-    </div>
+    </main>
+    <footer class="neo-footer">
+        <div class="container text-center">
+            <div class="social-links mb-3">
+                <a href="https://github.com" target="_blank"><i class="fab fa-github fa-lg"></i></a>
+                <a href="https://x.com" target="_blank"><i class="fab fa-x-twitter fa-lg"></i></a>
+                <a href="mailto:support@viorama.com"><i class="fas fa-envelope fa-lg"></i></a>
+            </div>
+            <p class="text-muted small mb-0">
+                © 2025 Viorama • Crafted with <i class="fas fa-heart" style="color: var(--accent);"></i> by rama & viona
+            </p>
+        </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
