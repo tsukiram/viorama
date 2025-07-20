@@ -1,4 +1,4 @@
-// app\static\js\search.js respon sebelumnya, sudah lengkap
+// app\static\js\search.js - Fixed version to resolve blur issue
 document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
@@ -11,16 +11,39 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const currentSessionId = window.location.pathname.split('/').pop() || null;
 
+    // FIXED: Ensure modal is properly hidden on page load
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+    }
+
+    // FIXED: Remove any lingering backdrop-filter effects
+    function clearBlurEffects() {
+        document.body.style.overflow = '';
+        document.body.style.filter = '';
+        document.documentElement.style.filter = '';
+        
+        // Remove any modal overlays
+        const allModals = document.querySelectorAll('.modal');
+        allModals.forEach(m => {
+            m.classList.add('hidden');
+            m.classList.remove('visible');
+            m.style.display = 'none';
+        });
+    }
+
+    // Call on page load to ensure clean state
+    clearBlurEffects();
+
     // Function to convert URLs in text to clickable links
     function convertUrlsToLinks(text) {
-        // Regular expression to match URLs
         const urlRegex = /(https?:\/\/[^\s<>"]+)/gi;
         return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>');
     }
 
     // Function to make links clickable in dynamically added content
     function makeLinksClickable(container) {
-        // Handle existing /paper/ links
         const paperLinks = container.querySelectorAll('a[href^="/paper/"]');
         paperLinks.forEach(link => {
             link.addEventListener('click', (e) => {
@@ -30,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Handle HTTP/HTTPS links
         const httpLinks = container.querySelectorAll('a[href^="http"]');
         httpLinks.forEach(link => {
             link.target = '_blank';
@@ -38,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
             link.classList.add('text-blue-600', 'hover:underline');
         });
 
-        // Convert plain text URLs to clickable links in text nodes
         const walker = document.createTreeWalker(
             container,
             NodeFilter.SHOW_TEXT,
@@ -49,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const textNodes = [];
         let node;
         while (node = walker.nextNode()) {
-            // Skip text nodes that are already inside links
             if (!node.parentElement.closest('a')) {
                 textNodes.push(node);
             }
@@ -63,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = newHTML;
                 
-                // Replace the text node with the new HTML
                 const fragment = document.createDocumentFragment();
                 while (tempDiv.firstChild) {
                     fragment.appendChild(tempDiv.firstChild);
@@ -168,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDiv.innerHTML = `📋 ${update}`;
             progressContent.appendChild(updateDiv);
             
-            // Remove initial pulse animation
             const initialPulse = progressContent.querySelector('.animate-pulse');
             if (initialPulse) initialPulse.remove();
             
@@ -212,7 +230,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make existing links clickable on page load
     makeLinksClickable(document);
 
+    // FIXED: Improved modal handling
+    function showModal(content) {
+        if (!modal) return;
+        
+        // Clear any existing blur effects first
+        clearBlurEffects();
+        
+        // Set content
+        if (stepsContent && content) {
+            stepsContent.innerHTML = content;
+            makeLinksClickable(stepsContent);
+        }
+        
+        // Show modal with proper styling
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        modal.classList.add('visible');
+        
+        // Prevent body scroll only when modal is open
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideModal() {
+        if (!modal) return;
+        
+        modal.classList.add('hidden');
+        modal.classList.remove('visible');
+        modal.style.display = 'none';
+        
+        // Restore body scroll and clear any blur effects
+        clearBlurEffects();
+    }
+
+    // FIXED: Session management with blur fix
     newSessionButton.addEventListener('click', async () => {
+        // Clear blur effects before prompt
+        clearBlurEffects();
+        
         const title = prompt('Enter a title for the new session:', 'New Search Session');
         if (!title) return;
 
@@ -236,6 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Array.from(deleteSessionButtons).forEach(button => {
         button.addEventListener('click', async () => {
+            // Clear blur effects before confirm
+            clearBlurEffects();
+            
             const sessionId = button.dataset.sessionId;
             if (confirm('Are you sure you want to delete this session?')) {
                 try {
@@ -257,9 +315,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // FIXED: Main search functionality with blur prevention
     sendButton.addEventListener('click', async () => {
         const message = messageInput.value.trim();
         if (!message || !currentSessionId) return;
+
+        // FIXED: Clear any blur effects before starting search
+        clearBlurEffects();
 
         // Disable input during processing
         messageInput.disabled = true;
@@ -300,11 +362,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.needs_search && data.system_output) {
                 createSearchProgressContainer();
                 
-                // Log the SSE URL for debugging
                 const sseUrl = `/search/search_process/${data.chat_id}?system_output=${encodeURIComponent(data.system_output)}`;
                 console.log('Initiating SSE request (GET):', sseUrl);
                 
-                // Use EventSource for real-time updates
                 const source = new EventSource(sseUrl);
                 
                 source.onmessage = (event) => {
@@ -323,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 progressContainer.remove();
                             }
                             
-                            // Display enhanced response with consistent design and show steps button
                             const finalResponseDiv = createBotMessage(
                                 searchData.enhanced_response || 'No enhanced response received.',
                                 new Date(searchData.timestamp),
@@ -345,7 +404,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     source.close();
                     updateSearchProgress('❌ Search failed: Connection error');
                     
-                    // Create error message with consistent design
                     const errorDiv = document.createElement('div');
                     errorDiv.className = 'chat-message bot';
                     errorDiv.innerHTML = `
@@ -367,7 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             removeTypingIndicator();
             
-            // Create error message with consistent design
             const errorDiv = document.createElement('div');
             errorDiv.className = 'chat-message bot';
             errorDiv.innerHTML = `
@@ -383,6 +440,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             chatContainer.appendChild(errorDiv);
             console.error('Fetch error:', error);
+        } finally {
+            // FIXED: Always clear blur effects when search completes
+            setTimeout(() => {
+                clearBlurEffects();
+            }, 100);
         }
 
         // Re-enable input
@@ -394,9 +456,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendButton.click();
+        if (e.key === 'Enter') {
+            // Clear blur effects before search
+            clearBlurEffects();
+            sendButton.click();
+        }
     });
 
+    // FIXED: Modal event handling
     chatContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('show-steps-button')) {
             try {
@@ -408,37 +475,62 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`
                 ).join('');
                 
-                stepsContent.innerHTML = `
+                const content = `
                     <div class="search-steps-list">
                         <h4 class="steps-title">🔍 Search Process Steps:</h4>
                         ${formattedSteps}
                     </div>
                 `;
-                makeLinksClickable(stepsContent);
-                modal.classList.remove('hidden');
-                modal.classList.add('visible');
+                
+                showModal(content);
             } catch (error) {
                 console.error('Error parsing search steps:', error);
-                stepsContent.innerHTML = `
+                showModal(`
                     <div class="error-content">
                         ❌ Error loading search steps
                     </div>
-                `;
-                modal.classList.remove('hidden');
-                modal.classList.add('visible');
+                `);
             }
         }
     });
 
-    closeModalButton.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('visible');
-    });
+    if (closeModalButton) {
+        closeModalButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            hideModal();
+        });
+    }
 
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('visible');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideModal();
+            }
+        });
+    }
+
+    // FIXED: Escape key handler with blur prevention
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideModal();
+            clearBlurEffects();
         }
     });
+
+    // FIXED: Window focus/blur handlers to prevent stuck blur effects
+    window.addEventListener('focus', () => {
+        clearBlurEffects();
+    });
+
+    window.addEventListener('beforeunload', () => {
+        clearBlurEffects();
+    });
+
+    // FIXED: Periodic cleanup to prevent stuck blur effects
+    setInterval(() => {
+        if (!modal || !modal.classList.contains('visible')) {
+            clearBlurEffects();
+        }
+    }, 5000);
 });
