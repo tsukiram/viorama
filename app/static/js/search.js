@@ -1,4 +1,4 @@
-// app\static\js\search.js
+// app\static\js\search.js respon sebelumnya, sudah lengkap
 document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
@@ -85,17 +85,72 @@ document.addEventListener('DOMContentLoaded', () => {
         return tempDiv.innerHTML;
     }
 
-    // Function to create search progress container
-    function createSearchProgressContainer() {
+    // Function to format timestamp consistently
+    function formatTimestamp(date = new Date()) {
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).replace(/(\d+)\/(\d+)\/(\d+),\s*(.*)/, '$3-$1-$2 $4');
+    }
+
+    // Function to create user message with consistent design
+    function createUserMessage(message, timestamp = new Date()) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message user';
+        messageDiv.innerHTML = `
+            <div class="message-bubble user">
+                <p class="message-timestamp">${formatTimestamp(timestamp)}</p>
+                <p class="message-sender">You:</p>
+                <div class="message-content">${convertUrlsToLinks(message)}</div>
+            </div>
+        `;
+        return messageDiv;
+    }
+
+    // Function to create bot message with consistent design
+    function createBotMessage(response, timestamp = new Date(), showSteps = false, searchSteps = []) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message bot';
+        
+        let stepsButton = '';
+        if (showSteps && searchSteps.length > 0) {
+            stepsButton = `<button class="show-steps-button" data-steps='${JSON.stringify(searchSteps)}'>Show Search Process</button>`;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="message-bubble bot">
+                <p class="message-timestamp">${formatTimestamp(timestamp)}</p>
+                <p class="message-sender">Viorama:</p>
+                <div class="message-content">${createHTMLFromResponse(response)}</div>
+                ${stepsButton}
+            </div>
+        `;
+        return messageDiv;
+    }
+
+    // Function to create search progress container with consistent design
+    function createSearchProgressContainer(timestamp = new Date()) {
         const progressDiv = document.createElement('div');
-        progressDiv.className = 'mb-4 flex justify-start';
+        progressDiv.className = 'chat-message bot';
         progressDiv.id = 'search-progress-container';
         progressDiv.innerHTML = `
-            <div class="max-w-[75%] bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm">
-                <p class="text-xs text-gray-500 mb-2">${new Date().toLocaleString()}</p>
-                <p class="text-sm font-semibold text-blue-600 mb-2">Search Process:</p>
-                <div id="search-progress-content" class="text-gray-700 text-sm font-mono">
-                    <div class="animate-pulse">Initializing search...</div>
+            <div class="message-bubble bot">
+                <p class="message-timestamp">${formatTimestamp(timestamp)}</p>
+                <p class="message-sender">Viorama:</p>
+                <div class="message-content">
+                    <div class="search-process-container">
+                        <div class="search-process-header">
+                            <strong>🔍 Search Process:</strong>
+                        </div>
+                        <div id="search-progress-content" class="search-process-content">
+                            <div class="search-step animate-pulse">🚀 Initializing search...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -109,25 +164,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressContent = document.getElementById('search-progress-content');
         if (progressContent) {
             const updateDiv = document.createElement('div');
-            updateDiv.className = 'mb-1';
-            updateDiv.textContent = update;
+            updateDiv.className = 'search-step';
+            updateDiv.innerHTML = `📋 ${update}`;
             progressContent.appendChild(updateDiv);
+            
+            // Remove initial pulse animation
             const initialPulse = progressContent.querySelector('.animate-pulse');
             if (initialPulse) initialPulse.remove();
+            
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
     }
 
-    // Function to show typing indicator
+    // Function to show typing indicator with consistent design
     function showTypingIndicator() {
         const typingDiv = document.createElement('div');
-        typingDiv.className = 'mb-4 flex justify-start';
+        typingDiv.className = 'chat-message bot';
         typingDiv.id = 'typing-indicator';
         typingDiv.innerHTML = `
-            <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="flex items-center space-x-2">
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span class="text-sm text-gray-600">Viorama is thinking...</span>
+            <div class="message-bubble bot">
+                <p class="message-timestamp">${formatTimestamp()}</p>
+                <p class="message-sender">Viorama:</p>
+                <div class="message-content">
+                    <div class="typing-indicator-content">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">Thinking...</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -200,17 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
         sendButton.disabled = true;
         sendButton.textContent = 'Processing...';
 
-        // Add user message
-        const userMessageDiv = document.createElement('div');
-        userMessageDiv.className = 'mb-4 flex justify-end';
-        userMessageDiv.id = `message-${Date.now()}`;
-        userMessageDiv.innerHTML = `
-            <div class="max-w-[75%] bg-blue-100 rounded-lg p-4 shadow-sm">
-                <p class="text-xs text-gray-500 mb-2">${new Date().toLocaleString()}</p>
-                <p class="text-sm font-semibold text-blue-600 mb-1">You:</p>
-                <div class="markdown-content text-gray-800 text-sm">${convertUrlsToLinks(message)}</div>
-            </div>
-        `;
+        // Add user message with consistent design
+        const userMessageDiv = createUserMessage(message);
         chatContainer.appendChild(userMessageDiv);
         makeLinksClickable(userMessageDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -230,17 +287,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.error || 'Server error');
             }
 
-            // Add initial response
-            const initialResponseDiv = document.createElement('div');
-            initialResponseDiv.className = 'mb-4 flex justify-start';
-            initialResponseDiv.id = `initial-response-${data.chat_id}`;
-            initialResponseDiv.innerHTML = `
-                <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
-                    <p class="text-xs text-gray-500 mb-2">${data.timestamp}</p>
-                    <p class="text-sm font-semibold text-blue-600 mb-1">Viorama:</p>
-                    <div class="markdown-content text-gray-800 text-sm">${createHTMLFromResponse(data.initial_response)}</div>
-                </div>
-            `;
+            // Add initial response with consistent design
+            const initialResponseDiv = createBotMessage(
+                data.initial_response, 
+                new Date(data.timestamp)
+            );
             chatContainer.appendChild(initialResponseDiv);
             makeLinksClickable(initialResponseDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -272,18 +323,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 progressContainer.remove();
                             }
                             
-                            // Display enhanced response or fallback
-                            const finalResponseDiv = document.createElement('div');
-                            finalResponseDiv.className = 'mb-4 flex justify-start';
-                            finalResponseDiv.id = `enhanced-response-${data.chat_id}`;
-                            finalResponseDiv.innerHTML = `
-                                <div class="max-w-[75%] bg-gray-100 rounded-lg p-4 shadow-sm">
-                                    <p class="text-xs text-gray-500 mb-2">${searchData.timestamp}</p>
-                                    <p class="text-sm font-semibold text-blue-600 mb-1">Viorama (Search Result):</p>
-                                    <div class="markdown-content text-gray-800 text-sm">${createHTMLFromResponse(searchData.enhanced_response || 'No enhanced response received.')}</div>
-                                    <button class="show-steps-button text-xs text-blue-600 hover:underline mt-2 block" data-steps='${JSON.stringify(searchData.search_updates || [])}'>Show Search Process</button>
-                                </div>
-                            `;
+                            // Display enhanced response with consistent design and show steps button
+                            const finalResponseDiv = createBotMessage(
+                                searchData.enhanced_response || 'No enhanced response received.',
+                                new Date(searchData.timestamp),
+                                true,
+                                searchData.search_updates || []
+                            );
                             chatContainer.appendChild(finalResponseDiv);
                             makeLinksClickable(finalResponseDiv);
                             chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -297,14 +343,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 source.onerror = () => {
                     console.error('SSE connection error');
                     source.close();
-                    updateSearchProgress('Search failed: Connection error');
+                    updateSearchProgress('❌ Search failed: Connection error');
+                    
+                    // Create error message with consistent design
                     const errorDiv = document.createElement('div');
-                    errorDiv.className = 'mb-4 flex justify-start';
+                    errorDiv.className = 'chat-message bot';
                     errorDiv.innerHTML = `
-                        <div class="max-w-[75%] bg-red-100 border border-red-300 rounded-lg p-4 shadow-sm">
-                            <p class="text-xs text-red-500 mb-2">${new Date().toLocaleString()}</p>
-                            <p class="text-sm font-semibold text-red-600 mb-1">Error:</p>
-                            <div class="text-red-700 text-sm">Failed to complete search. Please try again.</div>
+                        <div class="message-bubble bot error">
+                            <p class="message-timestamp">${formatTimestamp()}</p>
+                            <p class="message-sender">System:</p>
+                            <div class="message-content">
+                                <div class="error-content">
+                                    ❌ Failed to complete search. Please try again.
+                                </div>
+                            </div>
                         </div>
                     `;
                     chatContainer.appendChild(errorDiv);
@@ -314,13 +366,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             removeTypingIndicator();
+            
+            // Create error message with consistent design
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'mb-4 flex justify-start';
+            errorDiv.className = 'chat-message bot';
             errorDiv.innerHTML = `
-                <div class="max-w-[75%] bg-red-100 border border-red-300 rounded-lg p-4 shadow-sm">
-                    <p class="text-xs text-red-500 mb-2">${new Date().toLocaleString()}</p>
-                    <p class="text-sm font-semibold text-red-600 mb-1">Error:</p>
-                    <div class="text-red-700 text-sm">${error.message}</div>
+                <div class="message-bubble bot error">
+                    <p class="message-timestamp">${formatTimestamp()}</p>
+                    <p class="message-sender">System:</p>
+                    <div class="message-content">
+                        <div class="error-content">
+                            ❌ ${error.message}
+                        </div>
+                    </div>
                 </div>
             `;
             chatContainer.appendChild(errorDiv);
@@ -343,22 +401,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('show-steps-button')) {
             try {
                 const steps = JSON.parse(e.target.dataset.steps);
-                stepsContent.innerHTML = steps.map(step => `<p class="text-sm mb-1">${convertUrlsToLinks(step)}</p>`).join('');
+                const formattedSteps = steps.map((step, index) => 
+                    `<div class="search-step-modal">
+                        <span class="step-number">${index + 1}.</span>
+                        <span class="step-content">${convertUrlsToLinks(step)}</span>
+                    </div>`
+                ).join('');
+                
+                stepsContent.innerHTML = `
+                    <div class="search-steps-list">
+                        <h4 class="steps-title">🔍 Search Process Steps:</h4>
+                        ${formattedSteps}
+                    </div>
+                `;
                 makeLinksClickable(stepsContent);
                 modal.classList.remove('hidden');
+                modal.classList.add('visible');
             } catch (error) {
                 console.error('Error parsing search steps:', error);
-                stepsContent.innerHTML = '<p class="text-sm mb-1">Error loading search steps</p>';
+                stepsContent.innerHTML = `
+                    <div class="error-content">
+                        ❌ Error loading search steps
+                    </div>
+                `;
                 modal.classList.remove('hidden');
+                modal.classList.add('visible');
             }
         }
     });
 
     closeModalButton.addEventListener('click', () => {
         modal.classList.add('hidden');
+        modal.classList.remove('visible');
     });
 
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.add('hidden');
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('visible');
+        }
     });
 });
