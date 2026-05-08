@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viorama Admin Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --success: #22c55e;
+            --success-light: #dcfce7;
+            --accent-color: #6366f1;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-box {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .user-profile {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 8px 16px 8px 8px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+            margin-left: 8px;
+        }
+
+        .logout-btn:hover {
+            color: var(--danger);
+        }
+
+        /* CARD STYLES */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border);
+            background: #fdfdfd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .token-badge {
+            font-size: 11px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-body {
+            padding: 32px;
+        }
+
+        /* FORM ELEMENTS */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            width: 100%;
+            background: #fff;
+            border: 2px solid var(--border);
+            color: var(--text-main);
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 50px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .btn-back:hover {
+            color: var(--primary);
+            transform: translateX(-4px);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+        }
+
+
+        textarea.form-control {
+            min-height: 300px;
+            line-height: 1.6;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            background: #fcfcfc;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: var(--bg-body);
+            padding: 6px;
+            border-radius: 14px;
+            width: fit-content;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* BUTTONS */
+        .btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-muted);
+            background: var(--bg-body);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-danger-ghost {
+            background: transparent;
+            color: var(--danger);
+            padding: 8px;
+        }
+
+        .btn-danger-ghost:hover {
+            background: var(--danger-light);
+            border-radius: 8px;
+        }
+
+        .btn-success-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            padding: 8px;
+        }
+
+        .btn-success-ghost.active {
+            color: var(--success);
+            background: var(--success-light);
+            border-radius: 8px;
+        }
+
+        /* LIST STYLES */
+        .data-list {
+            list-style: none;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: #fcfcfc;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-body);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .list-item.active .item-icon {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .item-details h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .item-details p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ADD FORM */
+        .add-form {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: var(--bg-body);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            align-items: end;
+        }
+
+        /* ALERTS */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 40px;
+            font-size: 14px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">
+                <div class="logo-box">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <h1>Viorama AI Control</h1>
+                    <p>Configuration Center</p>
+                </div>
+            </div>
+            <div class="user-profile">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn-back"
+                    style="margin-right: 12px; box-shadow: none; background: transparent; border: none;">
+                    <i class="fas fa-arrow-left"></i> Back to Admin
+                </a>
+                <div class="avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <span>{{ user.username }}</span>
+                <a href="{{ url_for('admin.dashboard') }}" class="logout-btn" title="Back to Dashboard">
+                    <i class="fa-solid fa-house-chimney-window"></i>
+                </a>
+                <a href="{{ url_for('home.index') }}" class="logout-btn" title="Exit to App">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+
+            </div>
+
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category if category != 'message' else 'success' }}">
+            <i class="fa-solid fa-circle-info"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+
+
+
+
+        <!-- API Keys Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fa-solid fa-key" style="color: var(--primary)"></i>
+                    API Keys
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="add-form">
+                    <input type="hidden" name="action" value="add_key">
+                    <div style="flex-grow: 1;">
+                        <label class="form-label">Label (e.g. Personal Key)</label>
+                        <input type="text" name="key_label" class="form-control" placeholder="Key Label" required>
+                    </div>
+                    <div style="flex-grow: 2;">
+                        <label class="form-label">API Key</label>
+                        <input type="text" name="key_value" class="form-control" placeholder="AIzaSy..." required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Key</button>
+                </form>
+
+                <div class="data-list">
+                    {% for key in api_keys %}
+                    <div class="list-item {{ 'active' if key.is_active else '' }}">
+                        <div class="item-info">
+                            <div class="item-icon">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <div class="item-details">
+                                <h4>{{ key.label }}</h4>
+                                <p>{{ key.key[:10] }}...{{ key.key[-4:] }}</p>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="action" value="activate_key">
+                                <input type="hidden" name="key_id" value="{{ key.id }}">
+                                <button type="submit"
+                                    class="btn btn-success-ghost {{ 'active' if key.is_active else '' }}"
+                                    title="Activate">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    {{ 'Active' if key.is_active else 'Use' }}
+                                </button>
+                            </form>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_key">
+                                <input type="hidden" name="key_id" value="{{ key.id }}">
+                                <button type="submit" class="btn btn-danger-ghost" title="Delete"
+                                    onclick="return confirm('Delete this key?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No API Keys added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Models Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fa-solid fa-robot" style="color: #a855f7"></i>
+                    AI Models
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="add-form">
+                    <input type="hidden" name="action" value="add_model">
+                    <div style="flex-grow: 1;">
+                        <label class="form-label">Label (e.g. Gemini 2.5 Flash)</label>
+                        <input type="text" name="model_label" class="form-control" placeholder="Model Label" required>
+                    </div>
+                    <div style="flex-grow: 2;">
+                        <label class="form-label">Model ID</label>
+                        <input type="text" name="model_id" class="form-control" placeholder="gemini-2.5-flash" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Model</button>
+                </form>
+
+                <div class="data-list">
+                    {% for model in ai_models %}
+                    <div class="list-item {{ 'active' if model.is_active else '' }}">
+                        <div class="item-info">
+                            <div class="item-icon">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <div class="item-details">
+                                <h4>{{ model.label }}</h4>
+                                <p>{{ model.model_id }}</p>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="action" value="activate_model">
+                                <input type="hidden" name="db_model_id" value="{{ model.id }}">
+                                <button type="submit"
+                                    class="btn btn-success-ghost {{ 'active' if model.is_active else '' }}"
+                                    title="Activate">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    {{ 'Active' if model.is_active else 'Use' }}
+                                </button>
+                            </form>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_model">
+                                <input type="hidden" name="db_model_id" value="{{ model.id }}">
+                                <button type="submit" class="btn btn-danger-ghost" title="Delete"
+                                    onclick="return confirm('Delete this model?')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p style="text-align: center; color: var(--text-muted); padding: 20px;">No Models added yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="action" value="save_prompts">
+            <!-- Agent Prompts Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-terminal" style="color: var(--text-main)"></i>
+                        System Prompts
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tabs">
+                        <button type="button" class="tab-btn active"
+                            onclick="openTab(event, 'general')">General</button>
+                        <button type="button" class="tab-btn" onclick="openTab(event, 'search')">Search</button>
+                        <button type="button" class="tab-btn" onclick="openTab(event, 'discuss')">Discuss</button>
+                        <button type="button" class="tab-btn" onclick="openTab(event, 'title')">Title</button>
+                    </div>
+
+                    <div id="general" class="tab-content active">
+                        <div class="form-group">
+                            <label class="form-label">General Knowledge System Prompt</label>
+                            <textarea name="general_prompt"
+                                class="form-control">{{ settings.general_prompt }}</textarea>
+                        </div>
+                    </div>
+
+                    <div id="search" class="tab-content">
+                        <div class="form-group">
+                            <label class="form-label">Search Agent System Prompt</label>
+                            <textarea name="search_prompt" class="form-control">{{ settings.search_prompt }}</textarea>
+                        </div>
+                    </div>
+
+                    <div id="discuss" class="tab-content">
+                        <div class="form-group">
+                            <label class="form-label">Discussion Agent System Prompt</label>
+                            <textarea name="discuss_prompt"
+                                class="form-control">{{ settings.discuss_prompt }}</textarea>
+                        </div>
+                    </div>
+
+                    <div id="title" class="tab-content">
+                        <div class="form-group">
+                            <label class="form-label">Title Generator System Prompt</label>
+                            <textarea name="title_prompt" class="form-control">{{ settings.title_prompt }}</textarea>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Save Prompts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <div class="footer">
+            &copy; 2026 Viorama Admin Panel. White Theme Edition.
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabContent, tabBtns;
+
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].classList.remove("active");
+            }
+
+            tabBtns = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabBtns.length; i++) {
+                tabBtns[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+    </script>
+</body>
+
+</html>

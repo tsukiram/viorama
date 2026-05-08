@@ -1,0 +1,95 @@
+<!-- /app/templates/paper_detail.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/paper.css') }}?v={{ cache_buster }}">
+    <script src="{{ url_for('static', filename='js/paper.js') }}?v={{ cache_buster }}"></script>
+
+{% endblock %}
+
+{% block content %}
+<div class="paper-detail-container">
+    {% if paper.error %}
+        <div class="paper-error-card neo-card">
+            <!-- Tampilan Error Tetap Sama -->
+        </div>
+    {% else %}
+        <!-- Header Visual Baru -->
+        <div class="paper-hero-header">
+            <div class="hero-icon-background">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <h1 class="hero-title">{{ paper.title }}</h1>
+        </div>
+
+        <!-- Konten Utama dengan Layout Dua Kolom -->
+        <div class="paper-content-layout">
+            <!-- Kolom Kiri: Detail -->
+            <div class="paper-details-column">
+                <div class="paper-section neo-card">
+                    <h3><i class="fas fa-quote-left"></i> Sitasi</h3>
+                    <p>{{ paper.citation }}</p>
+                </div>
+                <div class="paper-section neo-card">
+                    <h3><i class="fas fa-align-left"></i> Abstrak</h3>
+                    <p>{{ paper.abstract }}</p>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Aksi -->
+            <div class="paper-actions-column">
+                <div class="action-box neo-card">
+                    <h4>Simpan Paper Ini?</h4>
+                    <p>Jadikan paper ini bagian dari koleksi pribadimu agar mudah ditemukan nanti!</p>
+                    <button 
+                        id="bookmark-btn" 
+                        class="btn-bookmark {% if is_saved %}saved{% endif %}"
+                        data-code="{{ paper.code }}"
+                        data-is-saved="{{ 'true' if is_saved else 'false' }}">
+                        <span class="btn-icon">
+                            <i class="{% if is_saved %}fas fa-check{% else %}fas fa-bookmark{% endif %}"></i>
+                        </span>
+                        <span class="btn-text">
+                            {% if is_saved %}Tersimpan{% else %}Simpan ke Koleksi{% endif %}
+                        </span>
+                    </button>
+                </div>
+                <div class="links-box neo-card">
+                    <h4>Tautan Penting</h4>
+                    <ul>
+                        {% if paper.preview_link %}
+                        <li><a href="{{ paper.preview_link }}" target="_blank"><i class="fas fa-file-pdf"></i> Lihat Preview PDF</a></li>
+                        {% endif %}
+                        {% if paper.full_text_link %}
+                        <li><a href="{{ paper.full_text_link }}" target="_blank"><i class="fas fa-book-open"></i> Lihat Teks Lengkap</a></li>
+                        {% endif %}
+                        <li><a href="{{ paper.url }}" target="_blank"><i class="fas fa-link"></i> Kunjungi Halaman Asli</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay" id="confirm-modal-overlay" style="display: none;">
+    <div class="modal-box neo-card">
+        <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="modal-title">Hapus Paper?</h3>
+        <p class="modal-message">Apakah Anda yakin ingin menghapus paper ini dari koleksi Anda?</p>
+        <div class="modal-actions">
+            <button id="cancel-btn" class="btn btn-secondary">Batal</button>
+            <button id="confirm-btn" class="btn btn-danger">Hapus</button>
+        </div>
+    </div>
+</div>
+
+<!-- Notifikasi Toast (awalnya tersembunyi) -->
+<div id="toast-notification" class="toast-notification">
+    <span id="toast-icon"></span>
+    <span id="toast-message"></span>
+</div>
+
+{% endblock %}

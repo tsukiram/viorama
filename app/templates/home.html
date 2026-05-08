@@ -1,0 +1,95 @@
+<!-- /app/templates/home.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+<script src="{{ url_for('static', filename='js/home.js') }}?v={{ cache_buster }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Konten Utama -->
+    <div class="main-content">
+        <!-- Welcome Banner Baru -->
+        <div class="welcome-banner neo-card">
+            <div class="welcome-text">
+                <h1 class="main-title">Halo, {{ user.username }}!✨ </h1>
+                <p class="main-subtitle">Apa yang akan kita eksplorasi hari ini?</p>
+                <p class="welcome-description">Selamat datang di asisten perpustakaan virtual Anda. Temukan paper akademik, kelola koleksi, dan dapatkan informasi perpustakaan UIN Sunan Kalijaga dengan mudah.</p>
+            </div>
+            <div class="welcome-illustration">
+                <img src="{{ url_for('static', filename='images/home_illustration.webp') }}" alt="Library Illustration" onerror="this.style.display='none'">
+                <div class="floating-icon icon-book1"><i class="fas fa-book"></i></div>
+                <div class="floating-icon icon-search"><i class="fas fa-search"></i></div>
+                <div class="floating-icon icon-sparkle1">✨</div>
+                <div class="floating-icon icon-star">⭐</div>
+            </div>
+        </div>
+
+        <!-- Kartu Fitur dalam Bahasa Indonesia -->
+        <div class="features-grid">
+            <a href="{{ url_for('general.index') }}" class="feature-card neo-card">
+                <div class="card-icon-wrapper" style="background-color: rgba(99, 102, 241, 0.1);">
+                    <i class="fas fa-question-circle" style="color: var(--primary);"></i>
+                </div>
+                <h2 class="card-title">Tanya Jawab Umum</h2>
+            <p class="card-description">Tanyakan tentang layanan, lokasi, dan peraturan di Perpustakaan UIN Sunan Kalijaga. Asisten AI siap membantumu</p>
+            </a>
+
+            <a href="{{ url_for('search_v2.index') }}" class="feature-card neo-card">
+                <div class="card-icon-wrapper" style="background-color: rgba(236, 72, 153, 0.1);">
+                    <i class="fas fa-search" style="color: var(--accent);"></i>
+                </div>
+                <h2 class="card-title">Pencarian Cerdas</h2>
+            <p class="card-description">  Temukan tulisan yang relevan untuk kebutuhanmu dari repository UIN Sunan Kalijaga dengan kekuatan pencarian AI.</p>
+            </a>
+            
+            <a href="{{ url_for('saved.index') }}" class="feature-card neo-card">
+                 <div class="card-icon-wrapper" style="background-color: rgba(245, 158, 11, 0.1);">
+                    <i class="fas fa-bookmark" style="color: var(--warning);"></i>
+                </div>
+                <h2 class="card-title">Koleksi Pribadi</h2>
+            <p class="card-description">Akses semua paper dan referensi yang telah Anda simpan.</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Sidebar Kanan dengan Paper Tersimpan Dinamis -->
+    <div class="sidebar-right">
+        <div class="papers-card neo-card">
+            <div class="card-header">
+                <h3>Paper Tersimpan</h3>
+                <a href="{{ url_for('saved.index') }}" class="see-all">Lihat semua</a>
+            </div>
+            <ul class="papers-list" id="recent-papers-list">
+                {% if recent_papers %}
+                    {% for paper in recent_papers %}
+                    <li class="paper-item">
+                        <div class="paper-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="paper-content">
+                            <!-- Link diubah ke paper.detail -->
+                            <a href="{{ url_for('paper.detail', code=paper.eprint_code) }}" class="paper-title-link">
+                                {{ paper.title[:50] }}{% if paper.title|length > 50 %}...{% endif %}
+                            </a>
+                            <p class="paper-code">{{ paper.eprint_code }}</p>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-papers">
+                        <i class="far fa-folder-open"></i>
+                        <p>Belum ada paper tersimpan</p>
+                        <a href="{{ url_for('search_v2.index') }}" class="btn-explore">Mulai Mencari</a>
+                    </div>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

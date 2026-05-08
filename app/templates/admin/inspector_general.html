@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>General Inspector | Intelligence Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --console-bg: #1e293b;
+            --console-text: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 40px 20px 300px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .stage-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .stage-header {
+            padding: 24px;
+            background: #fdfdfd;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .config-bar {
+            background: #f8fafc;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .config-content {
+            display: none;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-content.show {
+            display: block;
+        }
+
+        .stage-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .column {
+            background: white;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .column-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background: #fff;
+            resize: vertical;
+            min-height: 250px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .btn-run {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-run:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-run:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .token-badge {
+            background: #eff6ff;
+            color: #3b82f6;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* FIXED SYSTEM CONSOLE */
+        .system-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 280px;
+            background: var(--console-bg);
+            color: var(--console-text);
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-header {
+            padding: 12px 24px;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-logs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            border-left: 2px solid #475569;
+            padding-left: 12px;
+        }
+
+        .log-time {
+            color: #64748b;
+            min-width: 80px;
+        }
+
+        .log-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            height: fit-content;
+        }
+
+        .badge-agent {
+            background: #6366f1;
+            color: white;
+        }
+
+        .badge-sys {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .log-msg {
+            flex: 1;
+        }
+
+        .log-inspect {
+            color: #3b82f6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 80%;
+            max-width: 1000px;
+            border-radius: 24px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 90vh;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <a href="{{ url_for('admin.dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard
+                    Hub</a>
+                <h1><i class="fas fa-microscope" style="color: var(--primary)"></i> General Agent Inspector</h1>
+            </div>
+            <div id="tokens" class="token-badge" style="display:none">Ready</div>
+        </header>
+
+        <div class="stage-card">
+            <div class="stage-header">
+                <div class="stage-title"><i class="fas fa-robot"></i> Knowledge Sandbox</div>
+                <button class="btn-run" id="run-btn" onclick="runInspector()">
+                    <i class="fas fa-play"></i> EXECUTE CALL
+                </button>
+            </div>
+
+            <div class="config-bar" onclick="tglCfg()"><i class="fas fa-cog"></i> System Prompt Configuration</div>
+            <div id="cfg-content" class="config-content">
+                <textarea id="sys-prompt" style="min-height: 120px;">{{ default_prompt }}</textarea>
+            </div>
+
+            <div class="stage-body">
+                <div class="column">
+                    <div class="column-label"><i class="fas fa-terminal"></i> Inbound Message</div>
+                    <textarea id="user-input" placeholder="Type something to test the general agent..."></textarea>
+                </div>
+
+                <div class="column" style="background: #fdfdfd;">
+                    <div class="column-label"><i class="fas fa-robot"></i> Agent Reaction</div>
+                    <textarea id="output" placeholder="AI result will appear here..." readonly
+                        style="background: #fcfcfc; border-style: dashed;"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYSTEM CONSOLE -->
+    <div class="system-console">
+        <div class="console-header">
+            <div class="console-title"><i class="fas fa-terminal"></i> Global System Console</div>
+            <button style="background:transparent; border:none; color:#64748b; font-size:11px; cursor:pointer;"
+                onclick="clearConsole()"><i class="fas fa-trash"></i> CLEAR</button>
+        </div>
+        <div class="console-logs" id="con-logs">
+            <div class="log-entry"><span class="log-time">System</span> <span class="log-msg">General inspector
+                    ready.</span></div>
+        </div>
+    </div>
+
+    <!-- INSPECT MODAL -->
+    <div id="inspect-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Technical Trace Inspection</h2>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div class="column-label">Exact Payload Sent</div>
+                    <textarea id="m-payload" readonly></textarea>
+                </div>
+                <div>
+                    <div class="column-label">Raw Agent Response</div>
+                    <textarea id="m-response" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let technicalLogs = [];
+
+        function tglCfg() { document.getElementById('cfg-content').classList.toggle('show'); }
+
+        function logToConsole(badge, type, msg, trace = null) {
+            const logs = document.getElementById('con-logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString();
+
+            let traceLink = trace ? `<span class="log-inspect" onclick="openInspector(${technicalLogs.length})">Inspect Payload</span>` : '';
+            if (trace) technicalLogs.push(trace);
+
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-badge badge-${type}">${badge}</span>
+                <span class="log-msg">${msg} ${traceLink}</span>
+            `;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function openInspector(idx) {
+            const trace = technicalLogs[idx];
+            document.getElementById('m-payload').value = trace.full_payload_sent;
+            document.getElementById('m-response').value = trace.raw_response_received;
+            document.getElementById('inspect-modal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('inspect-modal').style.display = 'none'; }
+        function clearConsole() { document.getElementById('con-logs').innerHTML = ''; technicalLogs = []; }
+
+        async function runInspector() {
+            const btn = document.getElementById('run-btn');
+            const output = document.getElementById('output');
+            const tk = document.getElementById('tokens');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> RUNNING...';
+            output.value = 'Processing...';
+            logToConsole("AGENT", "agent", "Executing knowledge retrieval...");
+
+            try {
+                const response = await fetch('/admin/api/inspector/general_call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        input: document.getElementById('user-input').value,
+                        system_prompt: document.getElementById('sys-prompt').value
+                    })
+                });
+
+                const data = await response.json();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> EXECUTE CALL';
+
+                if (data.error) {
+                    output.style.color = '#ef4444';
+                    output.value = 'ERROR:\n' + data.error;
+                    logToConsole("SYSTEM", "sys", `Error: ${data.error}`);
+                } else {
+                    output.style.color = 'var(--text-main)';
+                    output.value = data.output;
+                    tk.style.display = 'block';
+                    tk.innerText = `${data.tokens.input} in / ${data.tokens.output} out`;
+                    logToConsole("AGENT", "agent", "Successfully retrieved response.", data.technical_trace);
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> EXECUTE CALL';
+                output.value = 'Connection error: ' + err;
+                logToConsole("SYSTEM", "sys", `Network Failure: ${err}`);
+            }
+        }
+
+        window.onclick = e => { if (e.target == document.getElementById('inspect-modal')) closeModal(); }
+    </script>
+</body>
+
+</html>

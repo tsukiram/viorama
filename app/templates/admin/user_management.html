@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management | Intelligence Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            transform: translateX(-2px);
+            color: var(--primary);
+        }
+
+        /* TABLE CARD */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8fafc;
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            text-align: left;
+            padding: 20px 24px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* USER STYLES */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .role-admin {
+            background: #f0f9ff;
+            color: #0ea5e9;
+        }
+
+        .role-user {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .token-count {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-delete {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--danger);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger-light);
+            border-color: var(--danger-light);
+        }
+
+        /* FLASH MESSAGES */
+        .flash-messages {
+            margin-bottom: 24px;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #d1fae5;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <div>
+                <div
+                    style="font-size:13px; font-weight:600; color:var(--primary); margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">
+                    System Administration</div>
+                <h1>User Management</h1>
+            </div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </header>
+
+        <!-- FLASH MESSAGES -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                <i class="fas fa-info-circle" style="margin-right:8px;"></i> {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User Identity</th>
+                            <th>Access Role</th>
+                            <th>Total Consumption</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u_data in users_data %}
+                        <tr>
+                            <td>
+                                <div class="user-info">
+                                    <div class="avatar">{{ u_data.username[0] | upper }}</div>
+                                    <div class="username">{{ u_data.username }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if u_data.is_admin %}
+                                <span class="role-badge role-admin">Admin</span>
+                                {% else %}
+                                <span class="role-badge role-user">User</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="token-count">{{ "{:,}".format(u_data.total_tokens) }} <span
+                                        style="font-size:11px; opacity:0.6; font-family:'Outfit';">TKN</span></div>
+                                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">{{ u_data.session_count }}
+                                    sessions</div>
+                            </td>
+                            <td>
+                                {% if u_data.username == session['username'] %}
+                                <span style="font-size:12px; color:#cbd5e1; font-style:italic;">Current User</span>
+                                {% else %}
+                                <form action="{{ url_for('admin.delete_user') }}" method="POST"
+                                    onsubmit="return confirm('⚠️ CRITICAL WARNING ⚠️\n\nYou are about to delete user: {{ u_data.username }}\n\nThis action will PERMANENTLY ERASE:\n- All chat history\n- Saved papers\n- Usage logs\n\nThis cannot be undone. Are you sure?');">
+                                    <input type="hidden" name="user_id" value="{{ u_data.id }}">
+                                    <button type="submit" class="btn-delete">
+                                        <i class="fas fa-trash"></i> Delete Account
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                                No users found in database.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,501 @@
+/* /app/static/css/saved.css */
+
+.saved-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.saved-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.header-icon-wrapper {
+    width: 72px;
+    height: 72px;
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 32px;
+    transform: rotate(-10deg);
+    transition: transform 0.3s ease;
+}
+.saved-header:hover .header-icon-wrapper {
+    transform: rotate(0deg) scale(1.1);
+}
+
+.saved-header h1 {
+    font-size: 2.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.saved-header p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* KARTU DAFTAR UTAMA */
+.papers-list-card {
+    padding: 16px;
+    background-color: #ffffff;
+}
+
+.paper-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* GAYA ITEM DAFTAR YANG BARU */
+.paper-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    border-radius: 16px;
+}
+.paper-item:last-child {
+    border-bottom: none;
+}
+.paper-item:hover {
+    transform: scale(1.02);
+    background-color: #f8fafc;
+    box-shadow: 0 8px 25px -5px rgba(200, 208, 227, 0.7);
+}
+
+.paper-item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+    /* Variabel ini akan diisi dari HTML */
+    background-color: var(--icon-bg);
+    color: var(--icon-color);
+}
+
+.paper-item-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.paper-title-link {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-decoration: none;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s ease;
+}
+.paper-title-link:hover {
+    color: var(--primary);
+}
+
+.paper-code {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.paper-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+    opacity: 0; /* Sembunyikan secara default */
+    transition: opacity 0.3s ease;
+}
+.paper-item:hover .paper-item-actions {
+    opacity: 1; /* Tampilkan saat hover */
+}
+
+.btn-icon {
+    background-color: #e2e8f0;
+    color: var(--text-secondary);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.btn-icon.remove-paper-btn:hover {
+    background-color: #fee2e2;
+    color: var(--danger);
+}
+
+
+/* Tampilan saat daftar kosong */
+.empty-saved-papers {
+    padding: 80px 40px;
+    text-align: center;
+}
+.empty-icon { 
+    font-size: 64px; 
+    color: var(--primary); 
+    margin-bottom: 24px;
+    opacity: 0.5;
+    transform: rotate(-15deg);
+}
+.empty-saved-papers h2 { font-size: 1.75rem; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; }
+.empty-saved-papers p { color: var(--text-light); margin-bottom: 32px; font-size: 1.1rem; }
+
+/* MODAL STYLES - Tambahkan di akhir saved.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.modal-box {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 10000;
+}
+
+.modal-icon {
+    width: 64px;
+    height: 64px;
+    background-color: #fee2e2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 24px;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
+.modal-message {
+    color: var(--text-light);
+    margin-bottom: 24px;
+    font-size: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: var(--text-dark);
+}
+
+.btn-secondary:hover {
+    background-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* RESPONSIVE DESIGN */
+
+/* Tablet (768px dan ke bawah) */
+@media (max-width: 768px) {
+    .saved-container {
+        padding: 16px;
+    }
+
+    .saved-header {
+        margin-bottom: 32px;
+    }
+
+    .header-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+
+    .saved-header h1 {
+        font-size: 2rem;
+    }
+
+    .saved-header p {
+        font-size: 1rem;
+        padding: 0 16px;
+    }
+
+    .papers-list-card {
+        padding: 12px;
+    }
+
+    .paper-item {
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .paper-item-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+    }
+
+    .paper-title-link {
+        font-size: 1rem;
+    }
+
+    .paper-code {
+        font-size: 0.8rem;
+    }
+
+    .paper-item-actions {
+        opacity: 1; /* Selalu tampil di mobile */
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .empty-saved-papers {
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+    }
+
+    .empty-saved-papers h2 {
+        font-size: 1.5rem;
+    }
+
+    .empty-saved-papers p {
+        font-size: 1rem;
+    }
+
+    .modal-box {
+        padding: 24px;
+        max-width: 340px;
+    }
+
+    .modal-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 20px;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+
+    .modal-message {
+        font-size: 0.95rem;
+    }
+}
+
+/* Mobile (480px dan ke bawah) */
+@media (max-width: 480px) {
+    .saved-container {
+        padding: 12px;
+    }
+
+    .saved-header {
+        margin-bottom: 24px;
+    }
+
+    .header-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
+        border-radius: 16px;
+    }
+
+    .saved-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .saved-header p {
+        font-size: 0.95rem;
+    }
+
+    .papers-list-card {
+        padding: 8px;
+    }
+
+    .paper-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .paper-item-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+    }
+
+    .paper-item-details {
+        width: 100%;
+    }
+
+    .paper-title-link {
+        font-size: 0.95rem;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    .paper-code {
+        font-size: 0.75rem;
+    }
+
+    .paper-item-actions {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .empty-saved-papers {
+        padding: 40px 16px;
+    }
+
+    .empty-icon {
+        font-size: 40px;
+        margin-bottom: 16px;
+    }
+
+    .empty-saved-papers h2 {
+        font-size: 1.25rem;
+        margin-bottom: 6px;
+    }
+
+    .empty-saved-papers p {
+        font-size: 0.9rem;
+        margin-bottom: 24px;
+    }
+
+    .modal-box {
+        padding: 20px;
+        max-width: 300px;
+        border-radius: 16px;
+    }
+
+    .modal-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    .modal-title {
+        font-size: 1.15rem;
+        margin-bottom: 10px;
+    }
+
+    .modal-message {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Extra Small Mobile (360px dan ke bawah) */
+@media (max-width: 360px) {
+    .saved-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .saved-header p {
+        font-size: 0.9rem;
+    }
+
+    .paper-title-link {
+        font-size: 0.9rem;
+    }
+
+    .empty-saved-papers h2 {
+        font-size: 1.15rem;
+    }
+
+    .empty-saved-papers p {
+        font-size: 0.85rem;
+    }
+
+    .modal-box {
+        max-width: 280px;
+    }
+}

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Token Usage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --bg-subtle: #1e293b;
+            --bg-hover: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .usage-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .usage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .usage-header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .back-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card h3 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .stat-card small {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .feature-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .feature-search {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .feature-general {
+            background: #10b981;
+            color: white;
+        }
+
+        .feature-discuss {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .feature-title {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-clear {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #dc2626;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+
+        .usage-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .usage-table th,
+        .usage-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .usage-table th {
+            background: var(--bg-subtle);
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .usage-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .usage-table tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        .session-link {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .session-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .empty_state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .content-section {
+            margin-bottom: 2rem;
+        }
+
+        .content-section h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .content-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+            color: #e2e8f0;
+        }
+
+        .btn-view {
+            background: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="usage-container">
+        <div class="usage-header">
+            <h1>📊 API Token Usage</h1>
+            <div class="header-actions">
+                <form action="{{ url_for('admin.clear_usage') }}" method="POST" onsubmit="return confirmClear()">
+                    <button type="submit" class="btn-clear">
+                        <i class="fas fa-trash-alt"></i> Clear Logs
+                    </button>
+                </form>
+                <span>{{ user.username }}</span>
+                <a href="{{ url_for('admin.dashboard') }}" class="logout-btn" title="Back to Dashboard">
+                    <i class="fa-solid fa-house-chimney-window"></i>
+                </a>
+                <a href="{{ url_for('home.index') }}" class="logout-btn" title="Exit to App">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </a>
+
+            </div>
+        </div>
+
+
+        {% if key_totals %}
+        <div class="stats-grid">
+            {% for key_id, data in key_totals.items() %}
+            <div class="stat-card">
+                <h3>{{ data.label }}</h3>
+                <div class="value">{{ "{:,}".format(data.total_tokens) }}</div>
+                <small>{{ data.total_requests }} requests</small>
+            </div>
+            {% endfor %}
+            <div class="stat-card">
+                <h3>Total All Keys</h3>
+                <div class="value">{{ "{:,}".format(grand_total) }}</div>
+                <small>tokens</small>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if usage_logs %}
+        <table class="usage-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Feature</th>
+                    <th>Session</th>
+                    <th>API Key</th>
+                    <th>Input</th>
+                    <th>Output</th>
+                    <th>Total</th>
+                    <th>Content</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in usage_logs %}
+                <tr>
+                    <td>{{ log.created_at.strftime('%m/%d %H:%M') if log.created_at else log.date.strftime('%Y-%m-%d')
+                        }}</td>
+                    <td>
+                        {% if log.feature == 'search' %}
+                        <span class="feature-badge feature-search">Search</span>
+                        {% elif log.feature == 'discuss' %}
+                        <span class="feature-badge feature-discuss">Discuss</span>
+                        {% elif log.feature == 'general' %}
+                        <span class="feature-badge feature-general">General</span>
+                        {% elif log.feature == 'title' %}
+                        <span class="feature-badge feature-title">Title</span>
+                        {% else %}
+                        <span class="feature-badge">-</span>
+                        {% endif %}
+
+                    </td>
+                    <td>
+                        {% if log.session %}
+                        <a href="#" class="session-link" title="{{ log.session.title }}">
+                            #{{ log.session_id }}
+                        </a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>{{ log.api_key.label }}</td>
+                    <td>{{ "{:,}".format(log.input_tokens) }}</td>
+                    <td>{{ "{:,}".format(log.output_tokens) }}</td>
+                    <td><strong>{{ "{:,}".format(log.total_tokens) }}</strong></td>
+                    <td>
+                        {% if log.input_content or log.output_content %}
+                        <button class="btn-view" onclick="viewContent('{{ log.id }}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <!-- Hidden data for JS -->
+                        <div id="input-{{ log.id }}" style="display:none;">{{ log.input_content or 'No input recorded'
+                            }}</div>
+                        <div id="output-{{ log.id }}" style="display:none;">{{ log.output_content or 'No output
+                            recorded' }}</div>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <p>No usage data yet. Start using the AI features to see token consumption.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal for viewing content -->
+    <div id="contentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt"></i> Log Content Detail</h2>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="content-section">
+                <h3>Input Content</h3>
+                <div id="modal-input" class="content-box"></div>
+            </div>
+            <div class="content-section">
+                <h3>Output Content</h3>
+                <div id="modal-output" class="content-box"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmClear() {
+            return confirm("WARNING: This will permanently delete ALL API token usage logs! This action cannot be undone.\n\nAre you sure you want to proceed?");
+        }
+
+        function viewContent(logId) {
+            const input = document.getElementById('input-' + logId).innerText;
+            const output = document.getElementById('output-' + logId).innerText;
+
+            document.getElementById('modal-input').innerText = input;
+            document.getElementById('modal-output').innerText = output;
+
+            document.getElementById('contentModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('contentModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('contentModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+
+</html>

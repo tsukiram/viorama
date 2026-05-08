@@ -1,0 +1,408 @@
+/* /app/static/css/auth.css */
+
+/* Atur body agar konten di tengah */
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animasi background yang playful */
+body::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    top: -250px;
+    right: -250px;
+    animation: float 20s infinite ease-in-out;
+}
+
+body::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    bottom: -200px;
+    left: -200px;
+    animation: float 15s infinite ease-in-out reverse;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -50px) rotate(120deg); }
+    66% { transform: translate(-20px, 20px) rotate(240deg); }
+}
+
+.auth-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1000px;
+    width: 90%;
+    background-color: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.25),
+                0 18px 36px -18px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* === KOLOM KIRI: ILUSTRASI === */
+.auth-illustration-panel {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dekorasi lucu di background */
+.auth-illustration-panel::before {
+    content: '📚';
+    position: absolute;
+    font-size: 180px;
+    opacity: 0.08;
+    top: -40px;
+    left: -40px;
+    transform: rotate(-15deg);
+    animation: wiggle 5s infinite ease-in-out;
+}
+
+.auth-illustration-panel::after {
+    content: '✨';
+    position: absolute;
+    font-size: 100px;
+    opacity: 0.1;
+    bottom: -20px;
+    right: -20px;
+    animation: wiggle 4s infinite ease-in-out reverse;
+}
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-15deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.05); }
+}
+
+.auth-illustration-panel img {
+    max-width: 350px;
+    margin-bottom: 32px;
+    filter: drop-shadow(0 10px 20px rgba(99, 102, 241, 0.2));
+    transition: transform 0.3s ease;
+}
+
+.auth-illustration-panel img:hover {
+    transform: scale(1.05) rotate(-2deg);
+}
+
+.auth-illustration-panel h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-dark);
+    position: relative;
+    z-index: 2;
+}
+
+.auth-illustration-panel p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 320px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* === KOLOM KANAN: FORMULIR === */
+.auth-form-panel {
+    padding: 60px 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.auth-form-container {
+    width: 100%;
+    max-width: 380px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.form-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    position: relative;
+    display: inline-block;
+}
+
+/* Garis dekoratif lucu di bawah judul */
+.form-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 2px;
+}
+
+.form-header p {
+    color: var(--text-light);
+    margin-top: 16px;
+}
+
+.form-header a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.form-header a:hover {
+    color: var(--secondary);
+}
+
+.form-header a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--secondary);
+    transition: width 0.3s ease;
+}
+
+.form-header a:hover::after {
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 14px 18px 14px 50px;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: #f8fafc;
+    box-sizing: border-box;
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.input-wrapper input:focus + i,
+.input-wrapper:focus-within i {
+    color: var(--primary);
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 8px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px -5px rgba(99, 102, 241, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.auth-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.5);
+}
+
+.auth-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.auth-btn:active {
+    transform: translateY(-1px);
+}
+
+.auth-error {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    color: #b91c1c;
+    padding: 14px 18px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 2px solid #fca5a5;
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.auth-error i {
+    font-size: 1.2rem;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+    .auth-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 450px;
+    }
+    
+    .auth-illustration-panel {
+        padding: 40px 30px;
+    }
+    
+    .auth-illustration-panel img {
+        max-width: 200px;
+    }
+    
+    .auth-illustration-panel h2 {
+        font-size: 1.4rem;
+    }
+    
+    .auth-form-panel {
+        padding: 40px 30px;
+    }
+    
+    body::before,
+    body::after {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .auth-wrapper {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .auth-illustration-panel {
+        display: none;
+    }
+    
+    .form-header h1 {
+        font-size: 1.6rem;
+    }
+}
+/* /app/static/css/auth.css */
+
+/* ... (kode lain) ... */
+
+/* === GAYA BARU UNTUK FLASH MESSAGES === */
+.auth-flash-messages {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: auto;
+    max-width: 90%;
+}
+
+.auth-alert {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    animation: fadeInDown 0.5s ease;
+}
+
+.alert-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}

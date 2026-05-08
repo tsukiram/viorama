@@ -1,0 +1,16 @@
+# LiteSpeed-compatible config untuk streaming SSE di /search/search_process.
+# Tanpa direktif Passenger (bikin error di LiteSpeed).
+
+# Matikan kompresi untuk endpoint streaming (gzip bikin buffer penuh-baru-kirim).
+<IfModule mod_deflate.c>
+    SetEnvIfNoCase Request_URI "^/search/search_process" no-gzip dont-vary
+</IfModule>
+
+# Header anti-buffering untuk SSE. X-LiteSpeed-Cache-Control instruksikan LSWS
+# untuk tidak mem-buffer/mem-cache response ini.
+<IfModule mod_headers.c>
+    SetEnvIf Request_URI "^/search/search_process" SSE_ENDPOINT=1
+    Header always set X-Accel-Buffering "no" env=SSE_ENDPOINT
+    Header always set X-LiteSpeed-Cache-Control "no-cache" env=SSE_ENDPOINT
+    Header always set Cache-Control "no-cache, no-store, must-revalidate" env=SSE_ENDPOINT
+</IfModule>

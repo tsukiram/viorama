@@ -1,0 +1,737 @@
+/* /app/static/css/main.css */
+:root {
+    --primary: #6366f1;
+    --secondary: #8b5cf6;
+    --accent: #ec4899;
+    --warning: #f59e0b; /* Warna kuning untuk notifikasi */
+    --danger: #ef4444;  /* Warna merah untuk notifikasi */
+    --dark: #1e1e2e;
+    --light: #f8fafc;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+}
+
+body {
+    min-height: 100vh;
+    /* Mengganti background gradien kompleks dengan warna solid yang bersih */
+    background-color: var(--light) !important;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+}
+
+.container-fluid {
+    max-width: 1400px; /* Lebar maksimum untuk konten */
+}
+
+/* Navbar Styling */
+.neo-navbar {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 10px 20px;
+    width: fit-content;
+    margin: 20px auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1030;
+}
+
+.neo-navbar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.07);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 1rem;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.book-icon {
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover .book-icon {
+    transform: rotateY(-180deg);
+}
+
+.nav-link {
+    font-size: 0.85rem;
+    text-decoration: none;
+    /* === TAMBAHAN === */
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500; /* Sedikit lebih tebal */
+}
+
+/* === GAYA BARU UNTUK LINK AKTIF === */
+.nav-link.active {
+    color: var(--primary) !important; /* Paksa warna primer */
+    background-color: rgba(99, 102, 241, 0.1); /* Latar belakang biru lembut */
+    font-weight: 600;
+}
+
+/* Bonus: Gaya aktif untuk logo/brand juga */
+.navbar-brand a.active {
+    color: var(--primary) !important;
+}
+/* === AKHIR GAYA BARU === */
+
+
+.hover-text-primary { color: var(--text-dark); }
+.hover-text-primary:hover { 
+    color: var(--primary);
+    background-color: rgba(99, 102, 241, 0.05); /* Efek hover yang lebih halus */
+}
+.hover-text-danger { color: #dc3545; }
+.hover-text-danger:hover { color: #dc3545; transform: scale(1.05); transition: all 0.3s ease; }
+
+/* Alerts */
+.alert {
+    border-radius: 12px;
+    border: none;
+}
+
+/* === FOOTER STYLING BARU YANG PROFESIONAL === */
+.site-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 50px;
+    margin-top: 60px; /* Jarak dari konten utama */
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* Kolom pertama lebih besar */
+    gap: 40px;
+    padding-bottom: 40px;
+}
+
+.footer-column .footer-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+}
+
+/* Kolom Tentang */
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 16px;
+}
+.footer-logo i {
+    color: var(--primary);
+}
+.footer-description {
+    line-height: 1.7;
+    max-width: 350px;
+}
+
+/* Kolom Tautan */
+.footer-column.links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.footer-column.links li {
+    margin-bottom: 12px;
+}
+.footer-column.links a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.footer-column.links a:hover {
+    color: var(--primary);
+    padding-left: 5px;
+}
+
+/* Kolom Sosial Media */
+.footer-column .social-links {
+    display: flex;
+    gap: 16px;
+}
+.social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #f1f5f9;
+    color: var(--text-light);
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.social-links a:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* Bagian Bawah Footer */
+.footer-bottom {
+    border-top: 1px solid #e2e8f0;
+    padding: 20px 0;
+    text-align: center;
+}
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+/* Penyesuaian Responsif untuk Footer */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr; /* Tumpuk semua kolom di mobile */
+        text-align: center;
+    }
+    .footer-description {
+        margin: 0 auto;
+    }
+    .footer-column .social-links {
+        justify-content: center;
+    }
+}
+
+/* Typography */
+.text-muted { color: #6b7280; }
+.gradient-text {
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+/* Card Base Styles (Diperbarui untuk tampilan yang lebih bersih) */
+.neo-card {
+    background: #ffffff; /* Latar belakang putih solid */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Bayangan lembut */
+    border: 1px solid #e2e8f0; /* Border tipis */
+    border-radius: 16px; /* Sudut lebih bulat */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 24px;
+}
+
+.neo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.2);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: var(--secondary);
+    box-shadow: 0 4px 18px rgba(139, 92, 246, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Inputs */
+.form-control {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: none;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    background: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .neo-navbar {
+        margin: 15px auto;
+        padding: 8px 15px;
+    }
+}
+
+
+/* === GAYA BARU UNTUK MODAL KONFIRMASI === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050; /* Pastikan ini lebih tinggi dari z-index navbar */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    padding: 32px;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal-box {
+    transform: scale(1);
+}
+
+.modal-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.modal-message {
+    color: var(--text-light);
+    margin-bottom: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.modal-actions .btn {
+    flex-grow: 1;
+}
+
+/* Penyesuaian untuk tombol logout di navbar */
+#logout-btn {
+    background: none;
+    border: none;
+    padding: 6px 12px; /* Samakan dengan nav-link */
+    cursor: pointer;
+}
+
+/* RESPONSIVE NAVBAR DESIGN */
+
+/* Navbar Brand Wrapper - untuk menampung logo dan hamburger */
+.navbar-brand-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+}
+
+/* Hamburger Toggle Button */
+.navbar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: var(--text-dark);
+    cursor: pointer;
+    padding: 6px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.navbar-toggle:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    transform: scale(1.05);
+}
+
+.navbar-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Tablet (768px dan ke bawah) */
+@media (max-width: 768px) {
+    .neo-navbar {
+        width: calc(100% - 32px);
+        margin: 16px;
+        padding: 12px 16px;
+        border-radius: 16px;
+    }
+
+    .neo-navbar .container-fluid {
+        flex-direction: column;
+        gap: 0 !important;
+    }
+
+    /* Brand wrapper tetap horizontal dengan hamburger di samping */
+    .navbar-brand-wrapper {
+        width: 100%;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+        width: auto;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .book-icon {
+        font-size: 1.3rem;
+    }
+
+    /* Show hamburger di mobile */
+    .navbar-toggle {
+        display: block !important;
+        margin-left: auto;
+    }
+
+    /* Navigation Links - Stack Vertically dan tersembunyi by default */
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(2),
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(3) {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px !important;
+        margin-top: 12px;
+    }
+
+    /* Hide links when collapsed */
+    .navbar-collapsed .d-flex.align-items-center.gap-3:nth-child(2),
+    .navbar-collapsed .d-flex.align-items-center.gap-3:nth-child(3) {
+        display: none !important;
+    }
+
+    /* Show links when expanded */
+    .navbar-expanded .d-flex.align-items-center.gap-3:nth-child(2),
+    .navbar-expanded .d-flex.align-items-center.gap-3:nth-child(3) {
+        display: flex !important;
+    }
+
+    .nav-link, #logout-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
+    .nav-link.active {
+        background-color: rgba(99, 102, 241, 0.15);
+    }
+
+    /* Hover effect lebih subtle di mobile */
+    .neo-navbar:hover {
+        transform: none;
+    }
+
+    /* Adjust main content padding */
+    main.container-fluid {
+        padding-top: 100px !important;
+    }
+    
+    /* Expanded state - more padding */
+    .navbar-expanded ~ main.container-fluid {
+        padding-top: 120px !important;
+    }
+}
+
+/* Mobile (480px dan ke bawah) */
+@media (max-width: 480px) {
+    .neo-navbar {
+        width: calc(100% - 24px);
+        margin: 12px;
+        padding: 10px 14px;
+        border-radius: 14px;
+    }
+
+    .navbar-brand-wrapper {
+        padding-bottom: 10px;
+        gap: 12px;
+    }
+
+    .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .navbar-brand a {
+        font-size: 1rem;
+    }
+
+    .book-icon {
+        font-size: 1.2rem;
+    }
+
+    .navbar-toggle {
+        font-size: 1.3rem;
+        padding: 5px;
+    }
+
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(2),
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(3) {
+        gap: 6px !important;
+        margin-top: 10px;
+    }
+
+    .nav-link, #logout-btn {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    /* Adjust main content padding */
+    main.container-fluid {
+        padding-top: 95px !important;
+    }
+
+    /* Footer adjustments */
+    .site-footer {
+        padding-top: 40px;
+        margin-top: 40px;
+    }
+
+    .footer-content {
+        gap: 30px;
+        padding-bottom: 30px;
+    }
+
+    .footer-logo {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+    }
+
+    .footer-description {
+        font-size: 0.85rem;
+    }
+
+    .footer-column .footer-title {
+        font-size: 0.95rem;
+        margin-bottom: 16px;
+    }
+
+    .footer-column.links li {
+        margin-bottom: 10px;
+    }
+
+    .footer-column.links a {
+        font-size: 0.85rem;
+    }
+
+    .social-links a {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+        padding: 16px 0;
+    }
+
+    .footer-bottom p {
+        font-size: 0.8rem;
+    }
+}
+
+/* Extra Small Mobile (360px dan ke bawah) */
+@media (max-width: 360px) {
+    .neo-navbar {
+        width: calc(100% - 20px);
+        margin: 10px;
+        padding: 8px 12px;
+    }
+
+    .navbar-brand-wrapper {
+        gap: 10px;
+        padding-bottom: 8px;
+    }
+
+    .navbar-brand {
+        font-size: 0.95rem;
+    }
+
+    .navbar-brand a {
+        font-size: 0.95rem;
+    }
+
+    .book-icon {
+        font-size: 1.1rem;
+    }
+
+    .navbar-toggle {
+        font-size: 1.2rem;
+        padding: 4px;
+    }
+
+    .nav-link, #logout-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    main.container-fluid {
+        padding-top: 90px !important;
+    }
+
+    /* Footer */
+    .footer-logo {
+        font-size: 1.2rem;
+    }
+
+    .footer-description {
+        font-size: 0.8rem;
+    }
+
+    .footer-column .footer-title {
+        font-size: 0.9rem;
+    }
+
+    .footer-column.links a {
+        font-size: 0.8rem;
+    }
+
+    .social-links a {
+        width: 34px;
+        height: 34px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Desktop - Hide hamburger */
+@media (min-width: 769px) {
+    .navbar-toggle {
+        display: none !important;
+    }
+    
+    .navbar-brand-wrapper {
+        width: auto;
+    }
+}
+
+/* Landscape Mode untuk Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .neo-navbar {
+        margin: 8px 16px;
+        padding: 8px 12px;
+    }
+
+    .navbar-brand-wrapper {
+        padding-bottom: 8px;
+    }
+
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(2),
+    .neo-navbar .d-flex.align-items-center.gap-3:nth-child(3) {
+        margin-top: 8px;
+    }
+
+    .nav-link, #logout-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    main.container-fluid {
+        padding-top: 85px !important;
+    }
+}
+
+/* Modal Responsive */
+@media (max-width: 480px) {
+    .modal-box {
+        max-width: 90%;
+        padding: 24px 20px;
+        border-radius: 16px;
+    }
+
+    .modal-icon {
+        width: 54px;
+        height: 54px;
+        font-size: 22px;
+        margin-bottom: 14px;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-message {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .modal-box {
+        padding: 20px 16px;
+    }
+
+    .modal-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+    }
+
+    .modal-message {
+        font-size: 0.85rem;
+    }
+
+    .modal-actions .btn {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+}

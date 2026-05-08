@@ -1,0 +1,71 @@
+<!-- /app/templates/saved.html -->
+
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/saved.css') }}?v={{ cache_buster }}">
+{% endblock %}
+
+{% block content %}
+<div class="saved-container">
+    <!-- Header Halaman yang Didesain Ulang -->
+    <div class="saved-header">
+        <div class="header-icon-wrapper">
+            <i class="fas fa-bookmark"></i>
+        </div>
+        <h1>Paper Tersimpan</h1>
+        <p>Ini adalah koleksi paper dan referensi favoritmu. Selamat membaca kembali!</p>
+    </div>
+
+    <!-- Kartu Daftar Utama -->
+    <div class="papers-list-card neo-card">
+        {% if saved_papers %}
+        <ul class="paper-list">
+            {% for paper in saved_papers %}
+                {% set style = {'color': '#6366f1', 'bg': 'rgba(99, 102, 241, 0.1)'} %}
+                <li class="paper-item" id="paper-item-{{ paper.id }}">
+                    <div class="paper-item-icon" style="--icon-bg: {{ style.bg }}; --icon-color: {{ style.color }};">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="paper-item-details">
+                        <a href="{{ url_for('paper.detail', code=paper.eprint_code) }}" class="paper-title-link">
+                            {{ paper.title }}
+                        </a>
+                        <p class="paper-code">Kode: {{ paper.eprint_code }}</p>
+                    </div>
+                    <div class="paper-item-actions">
+                        <button class="btn-icon remove-paper-btn" data-id="{{ paper.id }}" data-code="{{ paper.eprint_code }}" title="Hapus" type="button">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <!-- Tampilan Kosong yang Lebih Imut -->
+        <div class="empty-saved-papers">
+            <div class="empty-icon"><i class="fas fa-box-open"></i></div>
+            <h2>Kotak Simpananmu Kosong</h2>
+            <p>Sepertinya kamu belum menyimpan paper apapun. Ayo mulai petualanganmu!</p>
+            <a href="{{ url_for('search_v2.index') }}" class="btn btn-primary">Cari Paper Sekarang</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay" id="delete-modal-overlay" style="display: none;">
+    <div class="modal-box neo-card">
+        <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="modal-title">Hapus Paper?</h3>
+        <p class="modal-message">Apakah Anda yakin ingin menghapus paper ini dari daftar?</p>
+        <div class="modal-actions">
+            <button id="cancel-delete-btn" class="btn btn-secondary" type="button">Batal</button>
+            <button id="confirm-delete-btn" class="btn btn-danger" type="button">Hapus</button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/saved.js') }}?v={{ cache_buster }}"></script>
+{% endblock %}

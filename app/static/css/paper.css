@@ -1,0 +1,694 @@
+/* /app/static/css/paper.css */
+
+.paper-detail-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* HEADER VISUAL BARU */
+.paper-hero-header {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e0e7ff 100%);
+    border-radius: var(--soft-radius);
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    margin-bottom: 40px;
+    overflow: hidden;
+}
+
+.hero-icon-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 200px;
+    color: var(--primary);
+    opacity: 0.05;
+    transition: transform 0.3s ease;
+}
+.paper-hero-header:hover .hero-icon-background {
+    transform: translate(-50%, -50%) scale(1.1) rotate(-5deg);
+}
+
+.hero-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1.3;
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* LAYOUT KONTEN UTAMA */
+.paper-content-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
+.paper-details-column {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.paper-section {
+    padding: 32px;
+}
+.paper-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 16px 0;
+}
+.paper-section h3 i {
+    color: var(--primary);
+    opacity: 0.5;
+}
+.paper-section p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.8; /* Lebih lega */
+    margin: 0;
+}
+
+/* KOLOM AKSI (KANAN) */
+.paper-actions-column {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: sticky;
+    top: 120px;
+}
+
+.action-box, .links-box {
+    padding: 24px;
+    text-align: center;
+}
+.action-box h4, .links-box h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+.action-box p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 20px;
+}
+
+/* TOMBOL BOOKMARK BARU YANG LUCU */
+.btn-bookmark {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 4px 20px -5px rgba(99, 102, 241, 0.6);
+}
+.btn-bookmark:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.5);
+}
+.btn-bookmark:active {
+    transform: scale(0.98);
+}
+.btn-bookmark .btn-icon {
+    transition: transform 0.3s ease;
+}
+.btn-bookmark:hover .btn-icon {
+    transform: scale(1.2) rotate(-10deg);
+}
+
+/* State saat tersimpan */
+.btn-bookmark.saved {
+    background-color: #66BB6A; /* Hijau sukses */
+    box-shadow: 0 4px 20px -5px rgba(102, 187, 106, 0.6);
+}
+.btn-bookmark.saved:hover {
+    box-shadow: 0 8px 25px -5px rgba(102, 187, 106, 0.5);
+}
+
+
+/* ... (Gaya links-box, modal, toast, dan error card tetap sama seperti sebelumnya) ... */
+.links-box ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.links-box a { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); font-weight: 500; transition: color 0.2s ease; }
+.links-box a:hover { color: var(--secondary); }
+.links-box a i { width: 16px; }
+
+/* Kotak Tautan */
+.links-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.links-box a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--primary);
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.links-box a:hover {
+    color: var(--secondary);
+}
+.links-box a i {
+    width: 16px;
+}
+
+/* Gaya untuk Kartu Error */
+.paper-error-card {
+    padding: 40px;
+    text-align: center;
+}
+.paper-error-card h2 {
+    color: var(--danger);
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+.paper-error-card p {
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+/* GAYA NOTIFIKASI TOAST */
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--text-dark);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    
+    /* Sembunyikan secara default */
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 20px);
+    transition: all 0.4s ease;
+}
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+#toast-icon {
+    font-size: 1.2rem;
+}
+.toast-notification.success #toast-icon { color: #66BB6A; }
+.toast-notification.error #toast-icon { color: var(--danger); }
+
+
+/* Gaya Modal (sudah familiar) */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-box {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    padding: 32px;
+}
+.modal-icon {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background-color: #fee2e2;
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+}
+.modal-title { font-size: 1.25rem; font-weight: 600; color: var(--text-dark); }
+.modal-message { color: var(--text-light); margin: 8px 0 24px; }
+.modal-actions { display: flex; gap: 12px; justify-content: center; }
+
+@media (max-width: 768px) {
+    .paper-detail-card {
+        flex-direction: column;
+        gap: 32px;
+        padding: 24px;
+    }
+    .paper-actions {
+        min-width: auto;
+    }
+}
+
+
+/* RESPONSIVE DESIGN */
+
+/* Tablet (768px dan ke bawah) */
+@media (max-width: 768px) {
+    .paper-detail-container {
+        padding: 16px;
+    }
+
+    /* Hero Header */
+    .paper-hero-header {
+        padding: 40px 24px;
+        margin-bottom: 32px;
+        border-radius: 20px;
+    }
+
+    .hero-icon-background {
+        font-size: 150px;
+    }
+
+    .hero-title {
+        font-size: 1.3rem;
+    }
+
+    /* Layout Grid menjadi Single Column */
+    .paper-content-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .paper-details-column {
+        gap: 24px;
+    }
+
+    /* Kolom aksi tidak sticky lagi */
+    .paper-actions-column {
+        position: static;
+        gap: 24px;
+    }
+
+    /* Section */
+    .paper-section {
+        padding: 24px;
+    }
+
+    .paper-section h3 {
+        font-size: 1.1rem;
+        gap: 10px;
+    }
+
+    .paper-section p {
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+
+    /* Action Box */
+    .action-box, .links-box {
+        padding: 20px;
+    }
+
+    .action-box h4, .links-box h4 {
+        font-size: 1rem;
+    }
+
+    .action-box p {
+        font-size: 0.85rem;
+    }
+
+    .btn-bookmark {
+        padding: 12px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+    }
+
+    /* Links Box */
+    .links-box ul {
+        gap: 10px;
+    }
+
+    .links-box a {
+        font-size: 0.9rem;
+        gap: 8px;
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+        bottom: 20px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        max-width: 90%;
+        font-size: 0.9rem;
+    }
+
+    #toast-icon {
+        font-size: 1.1rem;
+    }
+
+    /* Modal */
+    .modal-box {
+        padding: 28px;
+        max-width: 360px;
+    }
+
+    .modal-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
+    }
+
+    .modal-title {
+        font-size: 1.15rem;
+    }
+
+    .modal-message {
+        font-size: 0.9rem;
+    }
+
+    /* Error Card */
+    .paper-error-card {
+        padding: 32px;
+    }
+
+    .paper-error-card h2 {
+        font-size: 1.3rem;
+    }
+
+    .paper-error-card p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Mobile (480px dan ke bawah) */
+@media (max-width: 480px) {
+    .paper-detail-container {
+        padding: 12px;
+    }
+
+    /* Hero Header */
+    .paper-hero-header {
+        padding: 32px 20px;
+        margin-bottom: 24px;
+        border-radius: 16px;
+    }
+
+    .hero-icon-background {
+        font-size: 120px;
+        opacity: 0.03;
+    }
+
+    .hero-title {
+        font-size: 1.15rem;
+        line-height: 1.4;
+    }
+
+    /* Content Layout */
+    .paper-content-layout {
+        gap: 20px;
+    }
+
+    .paper-details-column {
+        gap: 20px;
+    }
+
+    .paper-actions-column {
+        gap: 20px;
+    }
+
+    /* Section */
+    .paper-section {
+        padding: 20px;
+    }
+
+    .paper-section h3 {
+        font-size: 1rem;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .paper-section h3 i {
+        font-size: 0.9rem;
+    }
+
+    .paper-section p {
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+
+    /* Action Box */
+    .action-box, .links-box {
+        padding: 18px;
+    }
+
+    .action-box h4, .links-box h4 {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+
+    .action-box p {
+        font-size: 0.8rem;
+        margin-bottom: 16px;
+    }
+
+    .btn-bookmark {
+        padding: 11px;
+        font-size: 0.9rem;
+        gap: 8px;
+        border-radius: 10px;
+    }
+
+    .btn-bookmark .btn-icon {
+        font-size: 0.95rem;
+    }
+
+    .btn-bookmark:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Links Box */
+    .links-box ul {
+        gap: 8px;
+    }
+
+    .links-box a {
+        font-size: 0.85rem;
+        gap: 8px;
+        padding: 4px 0;
+    }
+
+    .links-box a i {
+        width: 14px;
+        font-size: 0.85rem;
+    }
+
+    /* Toast Notification */
+    .toast-notification {
+        bottom: 16px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        gap: 10px;
+        font-size: 0.85rem;
+        max-width: 85%;
+    }
+
+    #toast-icon {
+        font-size: 1rem;
+    }
+
+    /* Modal */
+    .modal-box {
+        padding: 24px;
+        max-width: 320px;
+        border-radius: 16px;
+    }
+
+    .modal-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 20px;
+        margin-bottom: 14px;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-message {
+        font-size: 0.85rem;
+        margin: 6px 0 20px;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+        padding: 11px 20px;
+        font-size: 0.9rem;
+    }
+
+    /* Error Card */
+    .paper-error-card {
+        padding: 28px 20px;
+    }
+
+    .paper-error-card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+    }
+
+    .paper-error-card p {
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+}
+
+/* Extra Small Mobile (360px dan ke bawah) */
+@media (max-width: 360px) {
+    .paper-detail-container {
+        padding: 10px;
+    }
+
+    .paper-hero-header {
+        padding: 28px 16px;
+        margin-bottom: 20px;
+    }
+
+    .hero-icon-background {
+        font-size: 100px;
+    }
+
+    .hero-title {
+        font-size: 1.05rem;
+    }
+
+    .paper-content-layout {
+        gap: 16px;
+    }
+
+    .paper-details-column,
+    .paper-actions-column {
+        gap: 16px;
+    }
+
+    .paper-section {
+        padding: 16px;
+    }
+
+    .paper-section h3 {
+        font-size: 0.95rem;
+    }
+
+    .paper-section p {
+        font-size: 0.8rem;
+    }
+
+    .action-box, .links-box {
+        padding: 16px;
+    }
+
+    .action-box h4, .links-box h4 {
+        font-size: 0.9rem;
+    }
+
+    .action-box p {
+        font-size: 0.75rem;
+    }
+
+    .btn-bookmark {
+        padding: 10px;
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    .links-box a {
+        font-size: 0.8rem;
+    }
+
+    .toast-notification {
+        padding: 9px 16px;
+        font-size: 0.8rem;
+        max-width: 90%;
+    }
+
+    .modal-box {
+        padding: 20px;
+        max-width: 280px;
+    }
+
+    .modal-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+    }
+
+    .modal-message {
+        font-size: 0.8rem;
+    }
+
+    .modal-actions .btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    .paper-error-card {
+        padding: 24px 16px;
+    }
+
+    .paper-error-card h2 {
+        font-size: 1.1rem;
+    }
+
+    .paper-error-card p {
+        font-size: 0.8rem;
+    }
+}
+
+/* Landscape Mode untuk Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .paper-hero-header {
+        padding: 32px 24px;
+    }
+
+    .hero-icon-background {
+        font-size: 120px;
+    }
+
+    .paper-actions-column {
+        position: static;
+    }
+
+    .toast-notification {
+        bottom: 12px;
+        padding: 10px 16px;
+    }
+}

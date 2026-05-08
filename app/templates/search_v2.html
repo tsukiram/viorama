@@ -1,0 +1,194 @@
+<!-- app/templates/search_v2.html -->
+{% extends "base.html" %}
+
+{% block title %}Paper Search v2{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}?v={{ cache_buster }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search_v2.css') }}?v={{ cache_buster }}">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="{{ url_for('static', filename='js/search_v2.js') }}?v={{ cache_buster }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+    <!-- === SIDEBAR === -->
+    <aside class="chat-sidebar" id="chat-sidebar">
+        <div class="sidebar-header">
+            <h3>History v2</h3>
+            <button id="minimize-sidebar-btn" class="sidebar-toggle-btn" title="Minimize Sidebar">
+                <i class="fas fa-angle-left"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-main-content">
+            <div class="new-chat-container">
+                <button id="new-chat-btn" class="btn btn-primary new-chat-button" title="Start New Search">
+                    <i class="fas fa-plus"></i>
+                    <span>New Search</span>
+                </button>
+            </div>
+            <div class="sidebar-body">
+                <ul id="session-list" class="session-list">
+                    {% if chat_sessions %}
+                    {% for sess in chat_sessions %}
+                    <li class="session-item {% if current_session and sess.id == current_session.id %}active{% endif %}"
+                        data-session-id="{{ sess.id }}">
+                        <a href="{{ url_for('search_v2.index', session_id=sess.id) }}" class="session-link">
+                            <span class="session-title">{{ sess.title }}</span>
+                        </a>
+                        <button class="session-menu-btn" title="Options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div class="session-menu-dropdown">
+                            <button class="menu-item rename-session-btn">
+                                <i class="fas fa-edit"></i>
+                                <span>Rename</span>
+                            </button>
+                            <button class="menu-item delete-session-btn">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-history">
+                        <i class="far fa-folder-open"></i>
+                        <p>No searches yet</p>
+                    </div>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-header-minimized">
+            <button id="maximize-sidebar-btn" class="sidebar-toggle-btn" title="Maximize Sidebar">
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button id="new-chat-btn-minimized" class="sidebar-icon-btn" title="New Search">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- KONTEN UTAMA -->
+    <main class="chat-main">
+        {% if not current_session %}
+        <div class="welcome-banner neo-card v2-welcome">
+            <div class="welcome-text">
+                <h1>Halo, {{ user.username }}!</h1>
+                <p><span class="v2-badge">Mode Cepat</span> Pencarian paper kilat 📚</p>
+                <p>Cukup ketik topik yang Anda cari, sistem akan langsung generate beberapa kata kunci dan
+                    menampilkan hasilnya dari Digilib UIN Sunan Kalijaga.</p>
+            </div>
+            <div class="welcome-illustration">
+                <img src="{{ url_for('static', filename='images/search_illustration.webp') }}"
+                    alt="Paper Search v2 Illustration">
+                <div class="floating-icon icon-book1"><i class="fas fa-bolt"></i></div>
+                <div class="floating-icon icon-book2"><i class="fas fa-file-alt"></i></div>
+                <div class="floating-icon icon-sparkle1">⚡</div>
+                <div class="floating-icon icon-sparkle2">📄</div>
+            </div>
+        </div>
+
+        <div class="suggestion-cards-grid">
+            <div class="suggestion-card neo-card" data-prompt="Carikan paper tentang machine learning">
+                <div class="card-icon-wrapper"><i class="fas fa-search"></i></div>
+                <div>
+                    <p class="card-title">Cari Cepat</p>
+                    <span class="card-subtitle">Machine Learning</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Paper tentang ekonomi syariah">
+                <div class="card-icon-wrapper"><i class="fas fa-book-open"></i></div>
+                <div>
+                    <p class="card-title">Ekonomi Syariah</p>
+                    <span class="card-subtitle">Tema populer</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Skripsi tentang analisis sentimen Twitter">
+                <div class="card-icon-wrapper"><i class="fas fa-comments"></i></div>
+                <div>
+                    <p class="card-title">Analisis Sentimen</p>
+                    <span class="card-subtitle">NLP / Text Mining</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Thesis tentang fiqih kontemporer">
+                <div class="card-icon-wrapper"><i class="fas fa-mosque"></i></div>
+                <div>
+                    <p class="card-title">Fiqih Kontemporer</p>
+                    <span class="card-subtitle">Studi Islam</span>
+                </div>
+            </div>
+        </div>
+        <div class="chat-container-placeholder">
+            <div class="chat-display" id="chat-display" style="display: none;"></div>
+        </div>
+        {% else %}
+        <div class="chat-container-active neo-card">
+            <div class="chat-display" id="chat-display">
+                {% for chat in chats %}
+                {% if chat.user_id %}
+                <div class="message is-user">
+                    <div class="message-bubble">{{ chat.message }}</div>
+                </div>
+                {% else %}
+                <div class="message is-ai" data-chat-id="{{ chat.id }}"
+                     {% if chat.search_steps %}data-search-steps="{{ chat.search_steps | e }}"{% endif %}>
+                    <div class="message-bubble">{{ chat.response or '' }}</div>
+                    <button class="copy-btn" title="Copy text">
+                        <i class="far fa-copy"></i>
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="chat-input-area neo-card">
+            <form id="chat-form" class="chat-form">
+                <textarea id="message-input" placeholder="Ketik topik paper yang Anda cari (mode cepat)..." rows="1"></textarea>
+                <button id="send-button" type="submit" class="send-btn" title="Send Message">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            <div id="processing-banner" class="v2-processing-banner" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Sedang mencari... mohon tunggu hingga proses selesai.</span>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay" id="delete-modal-overlay">
+    <div class="modal-box neo-card">
+        <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="modal-title">Delete Search?</h3>
+        <p class="modal-message">This search session will be permanently deleted.</p>
+        <div class="modal-actions">
+            <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rename -->
+<div class="modal-overlay" id="rename-modal-overlay">
+    <div class="modal-box neo-card">
+        <div class="modal-icon" style="background-color: var(--primary-tint-strong); color: var(--primary);"><i class="fas fa-edit"></i></div>
+        <h3 class="modal-title">Rename Search</h3>
+        <p class="modal-message">Enter a new name for this search session</p>
+        <input type="text" id="rename-input" class="rename-input" placeholder="Enter new name..." maxlength="100">
+        <div class="modal-actions">
+            <button id="cancel-rename-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-rename-btn" class="btn btn-primary">Rename</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

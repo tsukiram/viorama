@@ -1,0 +1,281 @@
+/* app/static/css/search_v2.css
+ *
+ * Styles SPESIFIK untuk Paper Search v2.
+ * search.css di-load duluan untuk layout dasar (sidebar, chat bubble, modal).
+ * File ini hanya menambah / override yang khas v2.
+ * Tema: dominan putih + aksen ungu light, minim kotak.
+ */
+
+/* ===== Welcome banner mode cepat ===== */
+.v2-welcome .v2-badge {
+    display: inline-block;
+    background: var(--primary-tint-strong);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-right: 8px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+/* ===== Processing banner (saat search berjalan) ===== */
+.v2-processing-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    margin-top: 10px;
+    background-color: var(--primary-tint);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--primary);
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+.v2-processing-banner i {
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+/* Input disabled visual */
+.chat-input-area.v2-locked {
+    opacity: 0.65;
+    pointer-events: none;
+}
+
+#message-input:disabled {
+    background-color: var(--light);
+    cursor: not-allowed;
+}
+
+/* ===== Container hasil pencarian v2 ===== */
+.v2-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+/* Section header (Kata Kunci Utama / Tambahan) */
+.v2-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border-color);
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+}
+
+.v2-section-header.is-tambahan {
+    color: var(--primary-soft);
+}
+
+.v2-section-header i {
+    font-size: 0.85rem;
+}
+
+/* Tiap blok keyword - flat, minim border */
+.v2-keyword-block {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: all 0.18s ease;
+}
+
+.v2-keyword-block.is-loading {
+    background: var(--primary-tint);
+}
+
+.v2-keyword-block.has-results {
+    border-left: 3px solid var(--primary);
+}
+
+.v2-keyword-block.no-results {
+    border-left: 3px solid #E5E7EB;
+    opacity: 0.85;
+}
+
+.v2-keyword-block.is-tambahan.has-results {
+    border-left-color: var(--primary-soft);
+}
+
+/* Header dalam blok (ringkasan) */
+.v2-kw-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.v2-kw-summary-text {
+    flex: 1;
+    line-height: 1.5;
+    color: var(--text-dark);
+}
+
+.v2-kw-summary-text strong {
+    color: var(--primary);
+}
+
+.v2-kw-summary-text .kw-quote {
+    background: var(--primary-tint);
+    padding: 1px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+    color: var(--primary);
+    font-size: 0.9em;
+}
+
+.v2-keyword-block.is-tambahan .v2-kw-summary-text .kw-quote {
+    background: var(--primary-tint-strong);
+    color: var(--primary);
+}
+
+/* Toggle button "lihat detail" */
+.v2-kw-toggle {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.v2-kw-toggle:hover {
+    background: var(--primary-tint);
+}
+
+.v2-kw-toggle .chevron {
+    transition: transform 0.2s ease;
+}
+
+.v2-keyword-block.expanded .v2-kw-toggle .chevron {
+    transform: rotate(180deg);
+}
+
+.v2-keyword-block.no-results .v2-kw-toggle {
+    display: none;
+}
+
+/* List paper di dalam blok (collapsed by default) */
+.v2-paper-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 10px;
+}
+
+.v2-keyword-block.expanded .v2-paper-list {
+    display: flex;
+    animation: v2-expand 0.22s ease;
+}
+
+@keyframes v2-expand {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.v2-paper-item {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--text-dark);
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.v2-paper-item:hover {
+    border-color: var(--primary-soft);
+    background: var(--primary-tint);
+}
+
+.v2-paper-item .v2-paper-cite {
+    color: var(--text-secondary);
+    word-break: break-word;
+}
+
+.v2-paper-item .v2-paper-link {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.82rem;
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.v2-paper-item .v2-paper-link:hover {
+    text-decoration: underline;
+}
+
+/* Loading inline (saat keyword sedang diproses) */
+.v2-kw-loading-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+.v2-kw-loading-text i {
+    color: var(--primary);
+}
+
+/* ===== Cancel button ===== */
+.v2-cancel-btn {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    margin-left: auto;
+}
+
+.v2-cancel-btn:hover {
+    background: #FEF2F2;
+}
+
+.v2-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+    .v2-kw-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .v2-kw-toggle {
+        align-self: flex-end;
+    }
+}

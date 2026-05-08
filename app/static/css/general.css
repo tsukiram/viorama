@@ -1,0 +1,1654 @@
+
+/* /app/static/css/general.css - VERSI LENGKAP & TERBARU */
+
+/* === VARIAN DAN OVERRIDE GLOBAL === */
+:root {
+    --sidebar-width: 280px;
+    --sidebar-minimized-width: 80px;
+    --layout-gap: 24px;
+    --soft-radius: 20px;
+    --medium-radius: 14px;
+    --shadow-cute: 0 4px 16px -8px rgba(167, 139, 250, 0.18);
+    --transition-speed: 0.3s;
+    --text-dark: #1F2A44;
+    --text-light: #6B7280;
+    --primary: #7C3AED;
+    --primary-soft: #A78BFA;
+    --primary-tint: #F5F3FF;
+    --primary-tint-strong: #EDE9FE;
+    --danger: #EF4444;
+    --light: #F8F7FC;
+    --border-color: #EDE9FE;
+    --text-secondary: #4B5563;
+}
+
+.neo-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--soft-radius);
+    box-shadow: none;
+    background: #ffffff;
+}
+
+/* === STRUKTUR LAYOUT UTAMA === */
+.chat-layout {
+    display: flex;
+    gap: var(--layout-gap);
+    height: calc(100vh - 160px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* === SIDEBAR KIRI === */
+.chat-sidebar {
+    width: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    border-radius: var(--soft-radius);
+    box-shadow: var(--shadow-cute);
+    padding: 16px;
+    transition: width var(--transition-speed) ease-in-out,
+                padding var(--transition-speed) ease-in-out;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    flex-shrink: 0;
+    min-height: 52px;
+}
+
+.sidebar-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    white-space: nowrap;
+    transition: opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+}
+
+.sidebar-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.sidebar-toggle-btn:hover {
+    background-color: var(--light);
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.sidebar-main-content {
+    flex-grow: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.new-chat-container {
+    padding: 16px 8px;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.new-chat-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 12px;
+    transition: all var(--transition-speed) ease;
+}
+.new-chat-button span {
+    transition: opacity var(--transition-speed) ease;
+    white-space: nowrap;
+}
+
+.sidebar-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    transition: all var(--transition-speed) ease;
+}
+
+/* === SESSION LIST & MENU === */
+.session-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+.session-item { 
+    margin: 4px 8px; 
+    border-radius: 12px; 
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.session-item:hover { 
+    background-color: var(--light); 
+}
+
+.session-item.active {
+    background-color: var(--primary-tint);
+}
+
+.session-item.active .session-link .session-title { 
+    color: var(--primary); 
+    font-weight: 600; 
+}
+
+.session-link { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    padding: 12px 16px; 
+    padding-right: 40px;
+    text-decoration: none; 
+    color: var(--text-secondary); 
+    position: relative; 
+}
+
+.session-link .session-title { 
+    color: var(--text-dark); 
+    font-weight: 500; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    transition: color 0.2s, opacity var(--transition-speed) ease;
+    flex: 1;
+}
+
+/* Three-dot menu button */
+.session-menu-btn { 
+    position: absolute; 
+    right: 8px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    background: transparent; 
+    border: none; 
+    color: var(--text-light); 
+    cursor: pointer; 
+    padding: 8px; 
+    border-radius: 6px; 
+    opacity: 0; 
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.session-item:hover .session-menu-btn { 
+    opacity: 1; 
+}
+
+.session-menu-btn:hover { 
+    background-color: #f3f4f6; 
+    color: var(--text-dark); 
+}
+
+/* Dropdown menu */
+.session-menu-dropdown {
+    position: absolute;
+    right: 8px;
+    top: calc(100% + 4px);
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+    min-width: 140px;
+    z-index: 100;
+    display: none;
+}
+
+.session-menu-dropdown.active {
+    display: block;
+}
+
+.menu-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-dark);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.menu-item:hover {
+    background-color: #f3f4f6;
+}
+
+.menu-item.delete-session-btn:hover {
+    background-color: #fee2e2;
+    color: var(--danger);
+}
+
+.menu-item i {
+    width: 16px;
+    font-size: 0.9rem;
+}
+
+.empty-history { 
+    text-align: center; 
+    padding: 40px 20px; 
+    color: var(--text-light); 
+}
+
+.empty-history i { 
+    font-size: 32px; 
+    margin-bottom: 16px; 
+}
+
+/* Header untuk Tombol Minimize yang ditampilkan saat minimized */
+.sidebar-header-minimized {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-speed) ease;
+    padding: 0 16px;
+}
+
+.sidebar-icon-btn {
+    background: var(--primary);
+    border: none;
+    color: white;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.sidebar-icon-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.28);
+}
+
+.sidebar-icon-btn i {
+    font-size: 1.2rem;
+}
+
+/* --- GAYA SAAT SIDEBAR MINIMIZE --- */
+.chat-sidebar.minimized {
+    width: var(--sidebar-minimized-width);
+    padding: 16px 8px;
+}
+
+.chat-sidebar.minimized .sidebar-header h3 {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.chat-sidebar.minimized .sidebar-main-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chat-sidebar.minimized .sidebar-header {
+    justify-content: center;
+    padding: 8px;
+}
+
+.chat-sidebar.minimized #minimize-sidebar-btn {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.chat-sidebar.minimized .sidebar-header-minimized {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* === KONTEN UTAMA === */
+.chat-main { 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+    gap: var(--layout-gap); 
+    min-width: 0; 
+}
+
+/* === GAYA WELCOME BANNER (2 KOLOM) === */
+.welcome-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 44px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+}
+
+.welcome-text {
+    flex-basis: 55%;
+    flex-shrink: 0;
+    padding-right: 32px;
+}
+
+.welcome-text h1 { 
+    font-size: 2.75rem; 
+    font-weight: 700; 
+    color: var(--text-dark); 
+    line-height: 1.2;
+}
+
+.welcome-text p { 
+    font-size: 1.1rem; 
+    color: var(--text-light); 
+    margin-top: 12px; 
+    max-width: 450px; 
+}
+
+.welcome-illustration {
+    flex-basis: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.welcome-illustration img {
+    max-width: 100%;
+    height: auto;
+    position: relative;
+    z-index: 1;
+}
+
+.floating-icon {
+    position: absolute;
+    opacity: 0.8;
+    animation-duration: 5s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    z-index: 2;
+}
+
+.floating-icon.icon-book1 {
+    font-size: 28px;
+    color: var(--primary);
+    top: 13%;
+    left: 5%;
+    animation-name: float-subtle-1;
+    opacity: 0.55;
+}
+
+.floating-icon.icon-book2 {
+    font-size: 24px;
+    color: var(--primary-soft);
+    top: 20%;
+    right: 10%;
+    animation-name: float-subtle-2;
+    animation-delay: 1s;
+    opacity: 0.55;
+}
+
+.floating-icon.icon-sparkle1 {
+    font-size: 22px;
+    bottom: 20%;
+    left: 3%;
+    animation-name: float-subtle-3;
+    animation-delay: 0.5s;
+    opacity: 0.5;
+}
+
+.floating-icon.icon-sparkle2 {
+    font-size: 18px;
+    bottom: 10%;
+    right: 20%;
+    animation-name: float-subtle-1;
+    animation-delay: 1.5s;
+    opacity: 0.5;
+}
+
+@keyframes float-subtle-1 { 
+    0% { transform: translate(0, 0) rotate(-5deg); } 
+    50% { transform: translate(5px, -15px) rotate(5deg); }
+    100% { transform: translate(0, 0) rotate(-5deg); } 
+}
+@keyframes float-subtle-2 { 
+    0% { transform: translate(0, 0) rotate(8deg); } 
+    50% { transform: translate(-8px, -12px) rotate(-8deg); }
+    100% { transform: translate(0, 0) rotate(8deg); } 
+}
+@keyframes float-subtle-3 { 
+    0% { transform: translate(0, 0) scale(1); } 
+    50% { transform: translate(0, -10px) scale(1.1); }
+    100% { transform: translate(0, 0) scale(1); } 
+}
+
+.suggestion-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.suggestion-card {
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.suggestion-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-soft);
+    background: var(--primary-tint);
+}
+
+.card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-tint-strong);
+    color: var(--primary);
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 2px 0;
+    line-height: 1.3;
+}
+
+.card-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-light);
+}
+
+.chat-container-active { 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+    padding: 16px; 
+}
+
+.chat-display { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    padding: 16px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
+
+.chat-container-placeholder { flex-grow: 1; }
+
+.message { 
+    display: flex; 
+    gap: 12px; 
+    max-width: 75%; 
+}
+.message.is-user { align-self: flex-end; }
+.message.is-ai { 
+    align-self: flex-start;
+    position: relative;
+    align-items: flex-end;
+}
+
+.message-bubble { 
+    padding: 14px 20px; 
+    font-size: 0.95rem; 
+    line-height: 1.6; 
+    border-radius: 20px; 
+}
+
+.message.is-user .message-bubble {
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.ai-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.message.is-ai .message-bubble {
+    background: var(--primary-tint);
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 20px 20px 20px 5px;
+}
+
+.chat-input-area {
+    padding: 12px 20px;
+    margin-top: auto;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+}
+
+.chat-input-area:focus-within {
+    border-color: var(--primary-soft);
+    box-shadow: 0 0 0 3px var(--primary-tint);
+}
+
+.chat-form { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+}
+
+#message-input { 
+    flex-grow: 1; 
+    resize: none; 
+    border: none; 
+    background: transparent; 
+    font-size: 1rem; 
+    max-height: 120px; 
+    padding: 8px; 
+}
+
+#message-input:focus { outline: none; }
+
+.send-btn { 
+    width: 48px; 
+    height: 48px; 
+    padding: 0; 
+    border-radius: var(--medium-radius); 
+    font-size: 1.2rem; 
+    flex-shrink: 0; 
+}
+
+/* === MODAL STYLES === */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.modal-box {
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    padding: 40px;
+    border-radius: var(--soft-radius);
+    background: white;
+    position: relative;
+    z-index: 10000;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-icon { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 50%; 
+    background-color: #fee2e2; 
+    color: var(--danger); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 auto 16px; 
+    font-size: 24px; 
+}
+
+.modal-title { 
+    font-size: 1.25rem; 
+    font-weight: 600; 
+    color: var(--text-dark);
+    margin: 0 0 8px 0;
+}
+
+.modal-message { 
+    color: var(--text-light); 
+    margin: 8px 0 24px;
+    font-size: 0.95rem;
+}
+
+.modal-actions { 
+    display: flex; 
+    gap: 12px; 
+    justify-content: center; 
+}
+
+.rename-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.rename-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-tint);
+}
+
+/* === TOMBOL COPY === */
+.copy-btn {
+    background-color: #f1f5f9;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 12px;
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.message.is-ai:hover .copy-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.copy-btn:hover {
+    background-color: var(--light);
+    color: var(--primary);
+}
+
+.copy-btn.copied {
+    background-color: var(--primary-tint-strong);
+    color: var(--primary);
+    border-color: var(--primary-soft);
+}
+
+.copy-btn.copied .fa-copy {
+    display: none;
+}
+.copy-btn .fa-check {
+    display: none;
+}
+.copy-btn.copied .fa-check {
+    display: inline-block;
+}
+
+/* === INDIKATOR PENGETIKAN === */
+.message.is-ai.typing-indicator .message-bubble {
+    background-color: var(--primary-tint);
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    padding: 18px 20px;
+}
+
+/* Cursor berkedip saat streaming token */
+.stream-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 1em;
+    background: var(--primary);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    border-radius: 2px;
+    animation: stream-blink 1s steps(2, start) infinite;
+}
+
+@keyframes stream-blink {
+    to { visibility: hidden; }
+}
+
+.message.is-ai.is-streaming .message-bubble {
+    /* Pastikan markdown muncul rapi saat di-update bertahap */
+    word-wrap: break-word;
+}
+
+.message.is-ai.is-streaming .message-bubble > p:last-child {
+    margin-bottom: 0;
+}
+
+.typing-indicator .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 0 3px;
+    background-color: var(--primary);
+    animation: elegant-bounce 1.5s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator .dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes elegant-bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 991.98px) {
+    .chat-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 160px);
+    }
+
+    .chat-sidebar {
+        width: 100%;
+        max-height: 200px;
+    }
+
+    .chat-sidebar.minimized {
+        width: 100%;
+        max-height: 60px;
+    }
+
+    .suggestion-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .welcome-banner {
+        flex-direction: column;
+        padding: 32px;
+    }
+
+    .welcome-text {
+        flex-basis: 100%;
+        padding-right: 0;
+        margin-bottom: 24px;
+    }
+
+    .welcome-text h1 {
+        font-size: 2rem;
+    }
+
+    .welcome-illustration {
+        flex-basis: 100%;
+        min-height: 200px;
+    }
+}
+
+/* /app/static/css/search-responsive.css */
+/* === TABLET & MOBILE BREAKPOINT === */
+@media (max-width: 991.98px) {
+    /* Layout utama menjadi vertikal */
+    .chat-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: calc(100vh - 160px);
+        gap: 16px;
+    }
+
+    /* === SIDEBAR HISTORY === */
+    .chat-sidebar {
+        width: 100%;
+        max-height: none;
+        border-radius: 16px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    /* State default: Minimized di mobile */
+    .chat-sidebar {
+        max-height: 60px;
+        overflow: hidden;
+    }
+
+    /* Header sidebar - tampilan minimized dan expanded */
+    .sidebar-header {
+        min-height: 36px;
+        padding: 4px 8px;
+        cursor: pointer;
+        justify-content: space-between; /* PERBAIKAN: Selalu space-between */
+    }
+
+    .sidebar-header h3 {
+        font-size: 1rem;
+        opacity: 1 !important; /* PERBAIKAN: Selalu tampil di mobile */
+        transform: none !important; /* PERBAIKAN: Tidak ada transform */
+    }
+
+    /* Sembunyikan konten utama sidebar saat minimized */
+    .chat-sidebar .sidebar-main-content {
+        opacity: 0;
+        pointer-events: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    /* OVERRIDE: Hindari gaya desktop minimized di mobile */
+    .chat-sidebar.minimized .sidebar-header {
+        justify-content: space-between !important; /* Override desktop centering */
+        padding: 4px 8px !important; /* Restore mobile padding */
+    }
+
+    .chat-sidebar.minimized .sidebar-header h3 {
+        opacity: 1 !important; /* Override desktop hide */
+        transform: none !important; /* Override desktop transform */
+    }
+
+    .chat-sidebar.minimized #minimize-sidebar-btn {
+        opacity: 1 !important; /* Override desktop hide */
+        position: relative !important; /* Override desktop absolute */
+        pointer-events: auto !important; /* Override desktop disable */
+    }
+
+    /* Tombol toggle berubah menjadi panah bawah saat minimized */
+    .sidebar-toggle-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    #minimize-sidebar-btn {
+        display: flex !important; /* SELALU tampilkan tombol di mobile */
+        opacity: 1 !important; /* SELALU tampak */
+        position: relative !important; /* TIDAK absolute */
+        pointer-events: auto !important; /* SELALU bisa diklik */
+    }
+
+    #maximize-sidebar-btn {
+        display: none; /* Sembunyikan tombol maximize yang terpisah */
+    }
+
+    /* Ubah ikon berdasarkan state */
+    .chat-sidebar #minimize-sidebar-btn i::before {
+        content: "\f107"; /* Panah bawah saat minimized */
+    }
+
+    .chat-sidebar.expanded #minimize-sidebar-btn i::before {
+        content: "\f106"; /* Panah atas saat expanded */
+    }
+    .sidebar-header-minimized {
+        display: none; /* Tidak perlu di mobile, kita gunakan header utama */
+    }
+
+    /* State expanded: Sidebar terbuka penuh */
+    .chat-sidebar.expanded {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .chat-sidebar.expanded .sidebar-main-content {
+        opacity: 1;
+        pointer-events: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    /* PERBAIKAN: Pastikan h3 tetap tampil saat expanded */
+    .chat-sidebar.expanded .sidebar-header {
+        justify-content: space-between; /* Tetap di samping saat expanded */
+    }
+
+    .chat-sidebar.expanded .sidebar-header h3 {
+        opacity: 1;
+        transform: none;
+    }
+
+
+    /* Session list styling untuk mobile */
+    .sidebar-body {
+        max-height: calc(100vh - 300px);
+    }
+
+    .session-item {
+        margin: 4px 0;
+    }
+
+    .session-link {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Tampilkan menu button permanen di mobile */
+    .session-menu-btn {
+        opacity: 1 !important; /* Selalu tampil di mobile, override hover */
+    }
+
+    /* === KONTEN UTAMA (CHAT) === */
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 280px);
+        gap: 0;
+    }
+
+    /* Welcome banner responsif */
+    .welcome-banner {
+        flex-direction: column;
+        padding: 24px 20px;
+        text-align: center;
+    }
+
+    .welcome-text {
+        flex-basis: 100%;
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .welcome-text h1 {
+        font-size: 1.75rem;
+        line-height: 1.3;
+    }
+
+    .welcome-text p {
+        font-size: 0.95rem;
+        max-width: 100%;
+    }
+
+    .welcome-illustration {
+        flex-basis: 100%;
+        min-height: 180px;
+    }
+
+    .welcome-illustration img {
+        max-width: 80%;
+    }
+
+    /* Floating icons ukuran lebih kecil */
+    .floating-icon.icon-book1,
+    .floating-icon.icon-book2 {
+        font-size: 24px;
+    }
+
+    .floating-icon.icon-sparkle1,
+    .floating-icon.icon-sparkle2 {
+        font-size: 18px;
+    }
+
+    /* Suggestion cards menjadi 2 kolom */
+    .suggestion-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .suggestion-card {
+        padding: 16px;
+    }
+
+    .card-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+    }
+
+    .card-title {
+        font-size: 0.95rem;
+    }
+
+    .card-subtitle {
+        font-size: 0.85rem;
+    }
+
+    /* Chat container - PENTING: Full screen dengan scroll */
+    .chat-container-active {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+        margin-bottom: 0;
+        min-height: 0; /* Penting untuk flexbox scrolling */
+    }
+
+    .chat-display {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 8px;
+        gap: 16px;
+        min-height: 300px; /* Minimum height untuk chat area */
+        max-height: calc(100vh - 380px); /* Prevent too tall */
+    }
+
+    /* Message bubbles lebih lebar di mobile */
+    .message {
+        max-width: 95%;
+    }
+
+    .message-bubble {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    /* Tombol copy dan show steps lebih besar untuk touch */
+    .copy-btn, .show-steps-btn {
+        width: 36px;
+        height: 36px;
+        margin-left: 6px;
+    }
+
+    /* === INPUT AREA (STICKY DI BAWAH) === */
+    .chat-input-area {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 12px 16px;
+        margin-top: 20px; /* Tambahkan jarak atas di mobile */
+        z-index: 10;
+        border-radius: 16px; /* Sudut tumpul semua sisi juga di mobile */
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-form {
+        gap: 12px;
+    }
+
+    #message-input {
+        font-size: 0.95rem;
+        padding: 10px 12px;
+        max-height: 100px;
+    }
+
+    .send-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+
+    /* Search progress container */
+    .search-process-wrapper {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .search-process-header {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .search-step {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        gap: 10px;
+    }
+
+    /* Modal responsif */
+    .modal-box {
+        max-width: 90%;
+        padding: 24px 20px;
+    }
+
+    .modal-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .modal-title {
+        font-size: 1.1rem;
+    }
+
+    .modal-message {
+        font-size: 0.9rem;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+    }
+
+    .rename-input {
+        font-size: 0.95rem;
+        padding: 10px 14px;
+    }
+
+    /* Search steps dalam modal */
+    .search-step-item {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .step-number {
+        font-size: 0.85rem;
+        min-width: 20px;
+        padding: 3px 6px;
+    }
+
+    .step-content {
+        font-size: 0.85rem;
+    }
+}
+
+/* === MOBILE PORTRAIT (SMARTPHONE) === */
+@media (max-width: 576px) {
+    /* Main layout adjustments */
+    .chat-layout {
+        gap: 12px;
+    }
+
+    /* Sidebar lebih compact */
+    .chat-sidebar {
+        max-height: 54px;
+        padding: 8px;
+        border-radius: 12px;
+    }
+
+    .sidebar-header h3 {
+        font-size: 0.95rem;
+    }
+
+    .chat-sidebar.expanded {
+        max-height: calc(100vh - 180px);
+    }
+
+    .session-link {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .session-menu-btn {
+        opacity: 1 !important;
+        padding: 6px;
+    }
+
+    /* Welcome banner */
+    .welcome-banner {
+        padding: 20px 16px;
+    }
+
+    .welcome-text h1 {
+        font-size: 1.5rem;
+    }
+
+    .welcome-text p {
+        font-size: 0.9rem;
+    }
+
+    .welcome-illustration {
+        min-height: 150px;
+    }
+
+    /* Suggestion cards menjadi 1 kolom di mobile kecil */
+    .suggestion-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .suggestion-card {
+        padding: 14px;
+    }
+
+    /* Chat display lebih compact */
+    .chat-container-active {
+        padding: 8px;
+    }
+
+    .chat-display {
+        padding: 8px 4px;
+        gap: 12px;
+        max-height: calc(100vh - 350px);
+    }
+
+    .message {
+        max-width: 95%;
+    }
+
+    .message-bubble {
+        padding: 10px 14px;
+        font-size: 0.875rem;
+        border-radius: 16px;
+    }
+
+    /* Message user */
+    .message.is-user .message-bubble {
+        border-bottom-right-radius: 4px;
+    }
+
+    /* Message AI */
+    .message.is-ai .message-bubble {
+        border-bottom-left-radius: 4px;
+    }
+
+    /* Input area */
+    .chat-input-area {
+        padding: 10px 12px;
+        border-radius: 16px;
+    }
+
+    .chat-form {
+        gap: 10px;
+    }
+
+    #message-input {
+        font-size: 0.9rem;
+        padding: 8px 10px;
+    }
+
+    .send-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        border-radius: 12px;
+    }
+
+    /* Typing indicator */
+    .typing-indicator .dot {
+        width: 6px;
+        height: 6px;
+    }
+
+    /* Search progress */
+    .search-process-wrapper {
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .search-process-header {
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    .search-step {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+
+    .search-step i {
+        font-size: 0.9rem;
+    }
+
+    /* Modal lebih kecil */
+    .modal-box {
+        padding: 20px 16px;
+        border-radius: 16px;
+    }
+
+    .modal-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+    }
+
+    .modal-message {
+        font-size: 0.85rem;
+        margin: 6px 0 20px;
+    }
+
+    .rename-input {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        margin-bottom: 16px;
+    }
+
+    /* Search steps dalam modal */
+    .search-step-item {
+        padding: 8px;
+        gap: 8px;
+        font-size: 0.8rem;
+    }
+
+    .step-number {
+        font-size: 0.75rem;
+        min-width: 18px;
+        padding: 2px 5px;
+    }
+
+    .step-content {
+        font-size: 0.8rem;
+    }
+
+    /* New chat button saat minimized */
+    .new-chat-button {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+
+    .new-chat-button i {
+        font-size: 1rem;
+    }
+}
+
+/* === LANDSCAPE MODE (MOBILE HORIZONTAL) === */
+@media (max-width: 991.98px) and (orientation: landscape) {
+    .chat-display {
+        max-height: calc(100vh - 280px);
+    }
+
+    .chat-sidebar.expanded {
+        max-height: calc(100vh - 140px);
+    }
+
+    .welcome-illustration {
+        min-height: 120px;
+    }
+
+    .modal-box {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* === FIX WELCOME BANNER OVERFLOW === */
+.welcome-banner {
+    min-height: 320px; /* Tambah tinggi minimum */
+}
+
+.welcome-text {
+    flex-shrink: 1; /* Izinkan text menyusut */
+    min-width: 0; /* Penting untuk text wrapping */
+}
+
+.welcome-text h1 {
+    word-wrap: break-word; /* Pecah kata panjang */
+    overflow-wrap: break-word;
+}
+
+.welcome-text p {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.6; /* Tambah jarak baris */
+}
+
+.welcome-illustration {
+    flex-shrink: 0.5; /* Izinkan ilustrasi menyusut sedikit */
+}
+
+/* Responsive adjustment untuk welcome banner */
+@media (max-width: 1200px) {
+    .welcome-banner {
+        padding: 40px 32px;
+    }
+    
+    .welcome-text {
+        flex-basis: 50%;
+        padding-right: 24px;
+    }
+    
+    .welcome-illustration {
+        flex-basis: 50%;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .welcome-banner {
+        min-height: auto;
+    }
+}
+
+/* Untuk layar yang sangat lebar */
+@media (min-width: 1400px) {
+    .welcome-banner {
+        padding: 56px 64px;
+    }
+    
+    .welcome-text p {
+        max-width: 550px; /* Lebarkan maksimal text */
+    }
+}
+
+
+/* === FIX FOOTER OVERLAP ISSUE === */
+.chat-main {
+    padding-bottom: 40px; /* Tambah padding bawah untuk memberi ruang dari footer */
+    margin-bottom: 20px;
+}
+
+.welcome-banner {
+    margin-bottom: 24px; /* Jarak antara banner dan suggestion cards */
+}
+
+.suggestion-cards-grid {
+    margin-bottom: 32px; /* Tambah jarak bawah untuk suggestion cards */
+}
+
+/* Pastikan container utama bisa di-scroll */
+main.container-fluid {
+    overflow-y: auto; /* Enable vertical scroll */
+    padding-bottom: 60px; /* Tambah padding bawah di main container */
+}
+
+/* Fix untuk chat layout agar tidak tertutup footer */
+.chat-layout {
+    margin-bottom: 40px; /* Jarak dari footer */
+    min-height: calc(100vh - 160px); /* Maintain minimum height */
+}
+
+/* Responsive fix */
+@media (max-width: 991.98px) {
+    .chat-main {
+        padding-bottom: 60px;
+    }
+    
+    main.container-fluid {
+        padding-bottom: 80px;
+    }
+    
+    .chat-layout {
+        margin-bottom: 60px;
+    }
+}
+
+@media (max-width: 576px) {
+    .chat-main {
+        padding-bottom: 80px;
+    }
+    
+    main.container-fluid {
+        padding-bottom: 100px;
+    }
+    
+    .chat-layout {
+        margin-bottom: 80px;
+    }
+}
+
+/* === FIX CONTENT VISIBILITY WITHOUT SCROLL === */
+.chat-layout {
+    height: auto; /* Ubah dari fixed height */
+    min-height: auto; /* Hapus minimum height constraint */
+    margin-bottom: 60px; /* Jarak dari footer */
+}
+
+.chat-main {
+    min-height: auto; /* Hapus constraint */
+    padding-bottom: 40px;
+}
+
+/* Kompres welcome banner agar lebih compact */
+.welcome-banner {
+    padding: 32px 40px;
+    min-height: 240px;
+    margin-bottom: 20px;
+}
+
+.welcome-text h1 {
+    font-size: 2.1rem;
+    margin-bottom: 8px;
+}
+
+.welcome-text p {
+    font-size: 1rem;
+    margin-top: 8px;
+    line-height: 1.55;
+}
+
+.welcome-illustration {
+    min-height: 200px;
+}
+
+.welcome-illustration img {
+    max-width: 90%;
+    max-height: 220px;
+    object-fit: contain;
+}
+
+/* Suggestion cards spacing */
+.suggestion-cards-grid {
+    gap: 14px;
+    margin-bottom: 0;
+}
+
+/* Pastikan footer tidak overlap */
+main.container-fluid {
+    padding-bottom: 40px;
+    overflow-y: visible;
+}
+
+.site-footer {
+    margin-top: 40px;
+}
+
+/* Responsive - tetap compact di tablet */
+@media (max-width: 991.98px) {
+    .welcome-banner {
+        padding: 24px 28px;
+        min-height: auto;
+    }
+    
+    .welcome-text h1 {
+        font-size: 1.75rem;
+    }
+    
+    .suggestion-cards-grid {
+        gap: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .welcome-banner {
+        padding: 20px 24px;
+    }
+    
+    .welcome-text h1 {
+        font-size: 1.5rem;
+    }
+    
+    .suggestion-cards-grid {
+        gap: 12px;
+    }
+    
+    .suggestion-card {
+        padding: 16px;
+    }
+}

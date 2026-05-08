@@ -1,0 +1,58 @@
+<!-- /app/templates/register.html -->
+
+{% extends "base_auth.html" %} {# Menggunakan base template baru #}
+
+{% block title %}Register for Viorama{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Kolom Kiri: Ilustrasi -->
+    <div class="auth-illustration-panel">
+        <img src="{{ url_for('static', filename='images/register_illustration.webp') }}" alt="Library Illustration">
+        <h2>Bergabung dengan SUKALIB_Tanya</h2>
+        <p>Buat akun untuk mulai menjelajahi dunia pengetahuan tanpa batas.</p>
+    </div>
+
+    <!-- Kolom Kanan: Formulir -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container">
+            <div class="form-header">
+                <h1>Buat Akun Baru</h1>
+                <p>Sudah punya akun? <a href="{{ url_for('auth.login') }}">Masuk di sini</a></p>
+            </div>
+            
+            {% if error %}
+            <div class="auth-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Pilih username unik" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Buat password yang kuat" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Konfirmasi Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-check-double"></i>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Ulangi password Anda" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary auth-btn">Daftar</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

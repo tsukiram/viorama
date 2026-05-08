@@ -1,0 +1,51 @@
+<!-- /app/templates/login.html -->
+
+{% extends "base_auth.html" %} {# Menggunakan base template baru #}
+
+{% block title %}Login to Viorama{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <!-- Kolom Kiri: Ilustrasi -->
+    <div class="auth-illustration-panel">
+        <img src="{{ url_for('static', filename='images/login_illustration.webp') }}" alt="Library Illustration">
+        <h2>Selamat Datang Kembali!</h2>
+        <p>Masuk untuk melanjutkan petualangan pengetahuanmu bersama SUKALIB_Tanya.</p>
+    </div>
+
+    <!-- Kolom Kanan: Formulir -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container">
+            <div class="form-header">
+                <h1>Masuk ke Akun Anda</h1>
+                <p>Belum punya akun? <a href="{{ url_for('auth.register') }}">Daftar di sini</a></p>
+            </div>
+            
+            {% if error %}
+            <div class="auth-error">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Masukkan username Anda" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Masukkan password Anda" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary auth-btn">Masuk</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

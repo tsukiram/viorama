@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/general.css') }}">
+    <script src="{{ url_for('static', filename='js/general.js') }}?v={{ cache_buster }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+
+    <!-- === SIDEBAR KIRI (DENGAN TOMBOL BARU) === -->
+    <aside class="chat-sidebar" id="chat-sidebar">
+        <div class="sidebar-header">
+            <h3>History</h3>
+            <!-- TOMBOL MINIMIZE BARU -->
+            <button id="minimize-sidebar-btn" class="sidebar-toggle-btn" title="Minimize Sidebar">
+                <i class="fas fa-angle-left"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-main-content">
+            <div class="new-chat-container">
+                <button id="new-chat-btn" class="btn btn-primary new-chat-button" title="Start New Chat">
+                    <i class="fas fa-plus"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+            <div class="sidebar-body">
+                <ul id="session-list" class="session-list">
+                    {% if chat_sessions %}
+                        {% for sess in chat_sessions %}
+                        <li class="session-item {% if current_session and sess.id == current_session.id %}active{% endif %}" data-session-id="{{ sess.id }}">
+                            <a href="{{ url_for('general.index', session_id=sess.id) }}" class="session-link">
+                                <span class="session-title">{{ sess.title }}</span>
+                            </a>
+                            <button class="session-menu-btn" title="Options">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                            <div class="session-menu-dropdown">
+                                <button class="menu-item rename-session-btn">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Rename</span>
+                                </button>
+                                <button class="menu-item delete-session-btn">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-history">
+                            <i class="far fa-folder-open"></i>
+                            <p>No chats yet</p>
+                        </div>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- HEADER BARU UNTUK TAMPILAN MINIMIZE (DI ATAS) -->
+        <div class="sidebar-header-minimized">
+            <button id="maximize-sidebar-btn" class="sidebar-toggle-btn" title="Maximize Sidebar">
+                <i class="fas fa-angle-right"></i>
+            </button>
+            <button id="new-chat-btn-minimized" class="sidebar-icon-btn" title="New Chat">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- KONTEN UTAMA (TETAP SAMA) -->
+    <main class="chat-main">
+        {% if not current_session %}
+        <div class="welcome-banner neo-card">
+            <!-- Kolom Kiri -->
+            <div class="welcome-text">
+                <h1>Halo, {{ user.username }}!</h1>
+                <p>Apa yang akan kita explore hari ini ✨</p>
+                <p>Tanyakan apapun Tentang Perpustakaan UIN Suka.  Asisten Perpustakaan Virtual : SUKALIB_Tanya, siap memberikan informasi seputar layanan, koleksi, peraturan, dan segala hal tentang Perpustakaan UIN Sunan Kalijaga</p>
+            </div>
+            <!-- Kolom Kanan -->
+            <div class="welcome-illustration">
+                <img src="{{ url_for('static', filename='images/general_illustration.webp') }}" alt="Library Assistant Illustration">
+                <div class="floating-icon icon-book1"><i class="fas fa-book"></i></div>
+                <div class="floating-icon icon-book2"><i class="fas fa-book-open"></i></div>
+                <div class="floating-icon icon-sparkle1">✨</div>
+                <div class="floating-icon icon-sparkle2">⭐</div>
+            </div>
+        </div>
+
+        <div class="suggestion-cards-grid">
+            <div class="suggestion-card neo-card" data-prompt="Bagaimana cara meminjam buku?">
+                <div class="card-icon-wrapper"><i class="fas fa-book-open"></i></div>
+                <div>
+                    <p class="card-title">Cara Pinjam Buku</p>
+                    <span class="card-subtitle">Prosedur & Aturan</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Di mana lokasi ruang baca?">
+                <div class="card-icon-wrapper"><i class="fas fa-map-marker-alt"></i></div>
+                <div>
+                    <p class="card-title">Lokasi Ruang Baca</p>
+                    <span class="card-subtitle">Cari tempat tenang</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Apa saja jam operasional perpustakaan?">
+                <div class="card-icon-wrapper"><i class="fas fa-clock"></i></div>
+                <div>
+                    <p class="card-title">Jam Operasional</p>
+                    <span class="card-subtitle">Jadwal hari ini</span>
+                </div>
+            </div>
+            <div class="suggestion-card neo-card" data-prompt="Bagaimana cara mengembalikan buku?">
+                <div class="card-icon-wrapper"><i class="fas fa-undo-alt"></i></div>
+                <div>
+                    <p class="card-title">Pengembalian Buku</p>
+                    <span class="card-subtitle">Lokasi & Prosedur</span>
+                </div>
+            </div>
+        </div>
+        <div class="chat-container-placeholder"></div>
+        {% else %}
+        <div class="chat-container-active neo-card">
+            <div class="chat-display" id="chat-display">
+                {% for chat in chats %}
+                <div class="message is-user">
+                    <div class="message-bubble">{{ chat.message | safe }}</div>
+                </div>
+                <div class="message is-ai">
+                    <div class="message-bubble">{{ chat.response | markdown | safe }}</div>
+                    <button class="copy-btn" title="Copy text">
+                        <i class="far fa-copy"></i>
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="chat-input-area neo-card">
+            <form id="chat-form" class="chat-form">
+                <textarea id="message-input" placeholder="Ask me anything about the library..." rows="1"></textarea>
+                <button id="send-button" type="submit" class="send-btn" title="Send Message" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay hidden" id="delete-modal-overlay">
+    <div class="modal-box neo-card">
+        <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="modal-title">Delete Chat?</h3>
+        <p class="modal-message">This conversation will be permanently deleted.</p>
+        <div class="modal-actions">
+            <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rename -->
+<div class="modal-overlay hidden" id="rename-modal-overlay">
+    <div class="modal-box neo-card">
+        <div class="modal-icon" style="background-color: var(--primary-tint-strong); color: var(--primary);"><i class="fas fa-edit"></i></div>
+        <h3 class="modal-title">Rename Chat</h3>
+        <p class="modal-message">Enter a new name for this conversation</p>
+        <input type="text" id="rename-input" class="rename-input" placeholder="Enter new name..." maxlength="100">
+        <div class="modal-actions">
+            <button id="cancel-rename-btn" class="btn btn-secondary">Cancel</button>
+            <button id="confirm-rename-btn" class="btn btn-primary">Rename</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Inspector | UI-First Architecture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --primary: #6366f1;
+            --primary-light: #e0e7ff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --console-bg: #1e293b;
+            --console-text: #e2e8f0;
+            --user-bubble: #6366f1;
+            --ai-bubble: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 40px 20px 320px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .stage-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .stage-header {
+            padding: 16px 24px;
+            background: #fdfdfd;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stage-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .stage-num {
+            background: var(--primary-light);
+            color: var(--primary);
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* UI LAYER SPECIFIC */
+        .chat-area {
+            padding: 32px;
+            background: #fff;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 16px 24px;
+            border-radius: 20px;
+            font-size: 15px;
+            position: relative;
+        }
+
+        .bubble-user {
+            align-self: flex-end;
+            background: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bubble-ai {
+            align-self: flex-start;
+            background: var(--ai-bubble);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .config-bar {
+            background: #f8fafc;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .config-content {
+            display: none;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-content.show {
+            display: block;
+        }
+
+        .stage-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .column {
+            background: white;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .column-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .badge-resource {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid var(--border);
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-resource i {
+            font-size: 8px;
+            opacity: 0.7;
+        }
+
+        .log-entry.error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .log-entry.error .log-badge {
+            background: #ef4444 !important;
+            color: white !important;
+        }
+
+        .log-entry.error .log-msg {
+            color: #b91c1c;
+            font-weight: 500;
+        }
+
+        textarea {
+
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            background: #fff;
+            resize: vertical;
+            min-height: 180px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .btn-run {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-run:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-run:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .pass-row {
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            background: #fdfdfd;
+            gap: 16px;
+        }
+
+        .btn-pass {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-pass:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-suggest {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: #f5f3ff;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(139, 92, 246, 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(139, 92, 246, 0.2);
+            }
+        }
+
+        /* FIXED SYSTEM CONSOLE */
+        .system-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 280px;
+            min-height: 50px;
+            max-height: 70vh;
+            background: var(--console-bg);
+            color: var(--console-text);
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: height 0.3s ease;
+        }
+
+        .system-console.minimized {
+            height: 50px !important;
+        }
+
+        .system-console.minimized .console-logs {
+            display: none;
+        }
+
+        .system-console.minimized .resize-handle {
+            display: none;
+        }
+
+        .resize-handle {
+            height: 8px;
+            background: linear-gradient(to bottom, #334155, #1e293b);
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resize-handle::after {
+            content: '';
+            width: 50px;
+            height: 4px;
+            background: #475569;
+            border-radius: 2px;
+        }
+
+        .console-toggle {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .console-toggle:hover {
+            background: #334155;
+            color: white;
+        }
+
+
+        .console-header {
+            padding: 12px 24px;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-logs {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            border-left: 2px solid #475569;
+            padding-left: 12px;
+        }
+
+        .log-time {
+            color: #64748b;
+            min-width: 80px;
+        }
+
+        .log-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            height: fit-content;
+        }
+
+        .badge-agent {
+            background: #6366f1;
+            color: white;
+        }
+
+        .badge-func {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-sys {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .log-inspect {
+            color: #3b82f6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 80%;
+            max-width: 1000px;
+            border-radius: 24px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 90vh;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <a href="{{ url_for('admin.dashboard') }}" class="back-link"><i class="fas fa-arrow-left"></i> Dashboard
+                    Hub</a>
+                <h1><i class="fas fa-project-diagram" style="color: var(--accent)"></i> UI-First Search Pipeline</h1>
+                <div style="display: flex; gap: 8px; margin-top: 8px; margin-left: 32px;">
+                    <div class="badge-resource" id="active-api-badge"><i class="fas fa-key"></i> API: <span
+                            id="api-label">Loading...</span></div>
+                    <div class="badge-resource" id="active-model-badge"><i class="fas fa-microchip"></i> Model: <span
+                            id="model-label">Loading...</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button class="btn-pass" style="border-color: #ef4444; color: #ef4444;" onclick="resetSession()"><i
+                        class="fas fa-undo"></i> RESET ALL SESSIONS</button>
+                <button class="btn-pass" onclick="clearConsole()"><i class="fas fa-trash"></i> Clear Logs</button>
+            </div>
+        </header>
+
+        <div class="pipeline">
+            <!-- STAGE 0: INTERFACE LAYER (THE TOP) -->
+            <div class="stage-card">
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <div class="stage-num">0</div> INTERFACE LAYER (SURFACE)
+                    </div>
+                    <div class="token-badge"
+                        style="background:#eff6ff; color:#3b82f6; padding:4px 12px; border-radius:10px; font-size:11px; font-weight:700;">
+                        FORMATTED UI</div>
+                </div>
+                <div class="chat-area" id="ui-chat-area">
+                    <!-- Dynamic Bubbles Go Here -->
+                    <div class="chat-bubble bubble-ai" id="ui-initial-msg">Halo! Saya asisten riset Anda. Silakan ketik
+                        apa yang ingin Anda cari.</div>
+                </div>
+                <div class="pass-row" style="background: #f8fafc; border-top: 1px solid var(--border); padding: 24px;">
+                    <input type="text" id="ui-input"
+                        style="flex:1; padding:16px 24px; border-radius:30px; border:1.5px solid var(--border); font-size:15px; outline:none;"
+                        placeholder="Enter message to AI..." value="Carikan paper tentang AI di Pertanian">
+                    <button class="btn-run" onclick="submitFromUI()" style="border-radius: 30px; padding: 0 32px;"><i
+                            class="fas fa-paper-plane"></i> SEND</button>
+                </div>
+            </div>
+
+            <!-- LEVEL 1: THE BRAIN -->
+            <div id="depth-1" class="stage-card">
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <div class="stage-num">1</div> DISCUSS AGENT (INTENT ANALYSIS)
+                    </div>
+                    <div id="tk-1" style="display:none" class="token-badge"></div>
+                </div>
+                <div class="config-bar" onclick="tglCfg(1)"><i class="fas fa-cog"></i> Brain Configuration</div>
+                <div id="cfg-1" class="config-content"><textarea id="sys-1">{{ prompts.discuss_prompt }}</textarea>
+                </div>
+                <div class="stage-body">
+                    <div class="column">
+                        <div class="column-label">Inbound from UI</div>
+                        <textarea id="input-1" placeholder="Payload from Step 0..."></textarea>
+                    </div>
+                    <div class="column">
+                        <div class="column-label">Brain Output (Raw JSON)</div>
+                        <textarea id="output-1" placeholder="Thinking..."></textarea>
+                        <button class="btn-run" id="b-1" onclick="runEx(1, '/admin/api/inspector/search_analyze')">RUN
+                            ANALYSIS</button>
+                    </div>
+                </div>
+                <div class="pass-row">
+                    <button class="btn-pass" id="p-1-search" onclick="transfer('output-1', 'input-2')">PASS TO SEARCH <i
+                            class="fas fa-chevron-down"></i></button>
+                    <button class="btn-pass" id="p-1-final" onclick="transfer('output-1', 'ui-return')">PASS BACK TO UI
+                        <i class="fas fa-chevron-up"></i></button>
+                </div>
+            </div>
+
+            <!-- LEVEL 2: STRATEGY -->
+            <div class="stage-card">
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <div class="stage-num">2</div> SEARCH AGENT (STRATEGY)
+                    </div>
+                    <div id="tk-2" style="display:none" class="token-badge"></div>
+                </div>
+                <div class="config-bar" onclick="tglCfg(2)"><i class="fas fa-cog"></i> Strategy Config</div>
+                <div id="cfg-2" class="config-content"><textarea id="sys-2">{{ prompts.search_prompt }}</textarea></div>
+                <div class="stage-body">
+                    <div class="column">
+                        <div class="column-label">Inbound Intent</div>
+                        <textarea id="input-2" placeholder="Instruction..."></textarea>
+                    </div>
+                    <div class="column">
+                        <div class="column-label">Keyword Strategy</div>
+                        <textarea id="output-2" placeholder="Planning..."></textarea>
+                        <button class="btn-run" id="b-2"
+                            onclick="runEx(2, '/admin/api/inspector/search_logic')">GENERATE KEYWORDS</button>
+                    </div>
+                </div>
+                <div class="pass-row">
+                    <button class="btn-pass" onclick="transfer('output-2', 'input-3')">PASS TO SCRAPER <i
+                            class="fas fa-chevron-down"></i></button>
+                </div>
+            </div>
+
+            <!-- LEVEL 3: ENGINE -->
+            <div class="stage-card">
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <div class="stage-num">3</div> REPOSITORY FUNCTION (SCRAPER)
+                    </div>
+                </div>
+                <div class="stage-body">
+                    <div class="column">
+                        <div class="column-label">Keywords</div>
+                        <textarea id="input-3"></textarea>
+                    </div>
+                    <div class="column">
+                        <div class="column-label">Found Papers</div>
+                        <textarea id="output-3"></textarea>
+                        <button class="btn-run" style="background:var(--success)" id="b-3"
+                            onclick="runEx(3, '/admin/api/inspector/search_repository')">RUN SCRAPER</button>
+                    </div>
+                </div>
+                <div class="pass-row">
+                    <button class="btn-pass" onclick="transfer('output-3', 'input-4')">PASS TO SYNTHESIZER <i
+                            class="fas fa-chevron-down"></i></button>
+                </div>
+            </div>
+
+            <!-- LEVEL 4: SYNTHESIZER (PASS BACK TO UI) -->
+            <div class="stage-card">
+                <div class="stage-header">
+                    <div class="stage-title">
+                        <div class="stage-num">4</div> FINAL SYNTHESIS (PRE-UI)
+                    </div>
+                    <div id="tk-4" style="display:none" class="token-badge"></div>
+                </div>
+                <div class="config-bar" onclick="tglCfg(4)"><i class="fas fa-cog"></i> Output Config</div>
+                <div id="cfg-4" class="config-content"><textarea id="sys-4">{{ prompts.discuss_prompt }}</textarea>
+                </div>
+                <div class="stage-body">
+                    <div class="column">
+                        <div class="column-label">Paper Data</div>
+                        <textarea id="input-4"></textarea>
+                    </div>
+                    <div class="column">
+                        <div class="column-label">Final Formatted Content</div>
+                        <textarea id="output-4" style="min-height:300px;"></textarea>
+                        <button class="btn-run" id="b-4"
+                            onclick="runEx(4, '/admin/api/inspector/search_summarize')">RE-SYNTHESIZE</button>
+                    </div>
+                </div>
+                <div class="pass-row">
+                    <button class="btn-pass" onclick="transfer('output-4', 'ui-final')">GENERATE FINAL UI BUBBLE <i
+                            class="fas fa-chevron-up"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYSTEM CONSOLE -->
+    <div class="system-console" id="system-console">
+        <div class="resize-handle" id="resize-handle"></div>
+        <div class="console-header">
+            <div class="console-title"><i class="fas fa-terminal"></i> Agent Trace Console</div>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="font-size:11px; opacity:0.6;">Tracing Depth Levels 0-4</div>
+                <button class="console-toggle" onclick="toggleConsole()">
+                    <i class="fas fa-chevron-down" id="console-toggle-icon"></i> <span
+                        id="console-toggle-text">Minimize</span>
+                </button>
+            </div>
+        </div>
+        <div class="console-logs" id="con-logs">
+            <div class="log-entry"><span class="log-time">System</span> <span class="log-msg">Inverted Pipeline Ready.
+                    Status: Normal.</span></div>
+        </div>
+    </div>
+
+
+    <!-- MODAL -->
+    <div id="inspect-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Technical Trace</h2><span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; overflow-y:auto;">
+                <textarea id="m-payload" readonly></textarea>
+                <textarea id="m-response" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let techLogs = [];
+        let uiUserQuery = "";
+
+        /**
+         * Cleans and parses agent output, extracting specific role content if needed.
+         * For 'keyword' role: Returns just the keyword string (e.g., "Machine Learning")
+         */
+        function parseAgentResponse(raw, roleTarget = null) {
+            if (!raw) return "";
+            let content = raw;
+            try {
+                // Remove md code blocks
+                const clean = raw.replace(/```json\n?|\n?```/g, '').trim();
+                const data = JSON.parse(clean);
+
+                if (Array.isArray(data)) {
+                    if (roleTarget) {
+                        const target = data.find(i => i.role === roleTarget);
+                        if (target) {
+                            // For keyword: return just the output string directly
+                            content = target.output || target.input || "";
+                        } else {
+                            content = raw;
+                        }
+                    } else {
+                        // Fallback: extract the 'user' (human-readable) portion for UI
+                        const userPart = data.find(i => i.role === 'user');
+                        content = userPart ? userPart.output : raw;
+                    }
+                } else if (typeof data === 'object') {
+                    content = data.output || data.message || raw;
+                }
+            } catch (e) {
+                // Not JSON or parse error, return as is (markdown/plain text)
+                content = raw;
+            }
+            // Ensure we return a clean string
+            if (typeof content !== 'string') {
+                content = JSON.stringify(content, null, 2);
+            }
+            return content.trim();
+        }
+
+
+
+        function tglCfg(id) { document.getElementById(`cfg-${id}`).classList.toggle('show'); }
+        function closeModal() { document.getElementById('inspect-modal').style.display = 'none'; }
+        function clearConsole() { document.getElementById('con-logs').innerHTML = ''; techLogs = []; }
+
+        // Console Toggle
+        function toggleConsole() {
+            const con = document.getElementById('system-console');
+            const icon = document.getElementById('console-toggle-icon');
+            const text = document.getElementById('console-toggle-text');
+            con.classList.toggle('minimized');
+            if (con.classList.contains('minimized')) {
+                icon.className = 'fas fa-chevron-up';
+                text.innerText = 'Expand';
+            } else {
+                icon.className = 'fas fa-chevron-down';
+                text.innerText = 'Minimize';
+            }
+        }
+
+        // Console Resize Drag
+        document.addEventListener('DOMContentLoaded', function () {
+            const con = document.getElementById('system-console');
+            const handle = document.getElementById('resize-handle');
+            if (!con || !handle) return;
+
+            let isDragging = false;
+            let startY, startHeight;
+
+            handle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                startHeight = con.offsetHeight;
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const delta = startY - e.clientY;
+                const newHeight = Math.min(Math.max(startHeight + delta, 50), window.innerHeight * 0.7);
+                con.style.height = newHeight + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            });
+        });
+
+
+
+
+        async function resetSession() {
+            if (!confirm("Are you sure you want to clear all agent memories?")) return;
+
+            logToConsole("SYSTEM", "sys", "Resetting all agent sessions...");
+            try {
+                const res = await fetch('/admin/api/inspector/reset_session', { method: 'POST' });
+                const data = await res.json();
+
+                // Clear UI
+                document.getElementById('ui-chat-area').innerHTML = '<div class="chat-bubble bubble-ai">Session cleared. I have no memory of our previous talk.</div>';
+
+                // Clear all textareas except system prompts
+                const ids = ['input-1', 'output-1', 'input-2', 'output-2', 'input-3', 'output-3', 'input-4', 'output-4'];
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+
+                logToConsole("SYSTEM", "success", "All agent sessions reset successfully.");
+                alert("Session Reset Successful.");
+            } catch (e) {
+                logToConsole("SYSTEM", "sys", "Failed to reset session: " + e);
+            }
+        }
+
+        function submitFromUI() {
+            const input = document.getElementById('ui-input').value;
+            if (!input) return;
+            uiUserQuery = input;
+
+            // Add user bubble
+            const area = document.getElementById('ui-chat-area');
+            area.innerHTML += `<div class="chat-bubble bubble-user">${input}</div>`;
+            area.innerHTML += `<div class="chat-bubble bubble-ai" id="ui-loading"><div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div> Thinking...</div>`;
+
+            // Pass to Step 1
+            document.getElementById('input-1').value = input;
+            document.getElementById('depth-1').scrollIntoView({ behavior: 'smooth' });
+            logToConsole("UI", "sys", "User input submitted. Interface layer waiting for Brain (Discuss Agent)...");
+        }
+
+        function transfer(fromId, toId) {
+            const raw = document.getElementById(fromId).value;
+            const target = document.getElementById(toId);
+
+            if (toId === 'ui-return' || toId === 'ui-final') {
+                renderBackToUI(fromId);
+                return;
+            }
+
+            let filtered = raw;
+            // Intelligent Extraction
+            if (fromId === 'output-1' && toId === 'input-2') filtered = parseAgentResponse(raw, 'system'); // Get logic
+            if (fromId === 'output-2' && toId === 'input-3') filtered = parseAgentResponse(raw, 'keyword'); // Get keywords
+            if (fromId === 'output-4' && toId === 'ui-final') filtered = parseAgentResponse(raw, 'user');
+
+            target.value = filtered;
+            target.parentElement.parentElement.parentElement.scrollIntoView({ behavior: 'smooth' });
+            target.style.borderColor = 'var(--primary)';
+            setTimeout(() => target.style.borderColor = 'var(--border)', 600);
+            logToConsole("UI", "sys", `Data processed and passed from ${fromId} to ${toId}`);
+        }
+
+
+        function renderBackToUI(fromId) {
+            const raw = document.getElementById(fromId).value;
+            const loading = document.getElementById('ui-loading');
+            if (loading) loading.remove();
+
+            const content = parseAgentResponse(raw, 'user');
+            const area = document.getElementById('ui-chat-area');
+            const formatted = content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            area.innerHTML += `<div class="chat-bubble bubble-ai">${formatted}</div>`;
+            document.body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            logToConsole("UI", "success", "Agent message processed and rendered to Surface Layer.");
+        }
+
+
+        function logToConsole(badge, type, msg, trace = null) {
+            const logs = document.getElementById('con-logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            let link = trace ? `<span class="log-inspect" onclick="openInsp(${techLogs.length})">Inspect Payload</span>` : '';
+            if (trace) techLogs.push(trace);
+            entry.innerHTML = `<span class="log-time">${time}</span><span class="log-badge badge-${type}">${badge}</span><span class="log-msg">${msg} ${link}</span>`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+
+        function openInsp(idx) {
+            const t = techLogs[idx];
+            document.getElementById('m-payload').value = t.full_payload_sent;
+            document.getElementById('m-response').value = t.raw_response_received;
+            document.getElementById('inspect-modal').style.display = 'flex';
+        }
+
+        async function runEx(id, url) {
+            const btn = document.getElementById(`b-${id}`);
+            const out = document.getElementById(`output-${id}`);
+            const tk = document.getElementById(`tk-${id}`);
+            const input = document.getElementById(`input-${id}`).value;
+
+            const sys = document.getElementById(`sys-${id}`) ? document.getElementById(`sys-${id}`).value : '';
+
+            btn.disabled = true;
+            out.value = "Executing logic...";
+            logToConsole("AGENT", "agent", `Level ${id} active...`);
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input: input, system_prompt: sys, original_query: uiUserQuery })
+                });
+                const data = await res.json();
+
+                // Update Metadata if available
+                if (data.metadata) {
+                    document.getElementById('api-label').innerText = data.metadata.api_label;
+                    document.getElementById('model-label').innerText = data.metadata.model_label;
+                }
+
+                btn.disabled = false;
+
+                if (data.error) {
+                    out.value = "Error: " + data.error;
+                    logToConsole("SYSTEM", "error", `Error at Level ${id}: ${data.error}`);
+                    if (data.logs) data.logs.forEach(l => logToConsole("SYSTEM", "error", l));
+                } else {
+                    out.value = data.output;
+
+                    if (data.tokens) {
+                        const tkEl = document.getElementById(`tk-${id}`);
+                        tkEl.innerText = `${data.tokens.input}/${data.tokens.output} tokens`;
+                        tkEl.style.display = 'block';
+                    }
+                    logToConsole("AGENT", "agent", `Level ${id} completed.`, data.technical_trace);
+                    if (id == 1) detect(data.output);
+                }
+            } catch (e) { btn.disabled = false; logToConsole("SYS", "sys", "Network failed"); }
+        }
+
+        function detect(json) {
+            document.getElementById('p-1-search').classList.remove('btn-suggest');
+            document.getElementById('p-1-final').classList.remove('btn-suggest');
+            try {
+                const clean = json.replace(/```json\n?|\n?```/g, '').trim();
+                const d = JSON.parse(clean);
+                const toSys = d.some(i => i.role === 'system');
+                const toUsr = d.some(i => i.role === 'user');
+                if (toSys && !toUsr) document.getElementById('p-1-search').classList.add('btn-suggest');
+                else if (toUsr) document.getElementById('p-1-final').classList.add('btn-suggest');
+            } catch (e) { }
+        }
+    </script>
+</body>
+
+</html>

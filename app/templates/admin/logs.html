@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Logs | Viorama Admin</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0d1117;
+            --bg-term: #161b22;
+            --text-main: #c9d1d9;
+            --text-dim: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 16px 24px;
+            background: var(--bg-term);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #21262d;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #30363d;
+        }
+
+        .btn-primary {
+            background: #238636;
+            border-color: rgba(240, 246, 252, 0.1);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2ea043;
+        }
+
+        .terminal-container {
+            flex: 1;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-window {
+            flex: 1;
+            background: var(--bg-term);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #e6edf3;
+            scroll-behavior: smooth;
+        }
+
+        .log-line {
+            border-bottom: 1px solid rgba(48, 54, 61, 0.3);
+        }
+
+        .log-time {
+            color: var(--text-dim);
+            margin-right: 10px;
+        }
+
+        .log-error {
+            color: #f85149;
+        }
+
+        .log-info {
+            color: #58a6ff;
+        }
+
+        .log-warn {
+            color: #d29922;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="title">
+            <i class="fas fa-terminal" style="color: var(--accent);"></i>
+            Server Terminal Logs
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div
+                style="display: flex; align-items: center; gap: 8px; margin-right: 16px; font-size: 13px; color: var(--text-dim);">
+                <span id="status-indicator"
+                    style="width: 8px; height: 8px; background: #238636; border-radius: 50%;"></span>
+                Live
+            </div>
+            <button class="btn" onclick="fetchLogs()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button class="btn" onclick="toggleAutoScroll()" id="scrollBtn">
+                <i class="fas fa-arrow-down"></i> Auto-scroll: ON
+            </button>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn">
+                <i class="fas fa-times"></i> Close
+            </a>
+        </div>
+    </header>
+
+    <div class="terminal-container">
+        <div class="terminal-window" id="terminal">
+            Loading terminal stream...
+        </div>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        let autoScroll = true;
+        let lastLogCount = 0;
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('scrollBtn');
+            btn.innerHTML = autoScroll ?
+                '<i class="fas fa-arrow-down"></i> Auto-scroll: ON' :
+                '<i class="fas fa-pause"></i> Auto-scroll: OFF';
+            if (autoScroll) scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/admin/api/logs');
+                const data = await response.json();
+
+                if (data.logs) {
+                    // Only update if changes
+                    if (data.logs.length !== lastLogCount || true) { // Always update for tail for now
+                        terminal.innerText = data.logs.join('');
+                        lastLogCount = data.logs.length;
+                        if (autoScroll) scrollToBottom();
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch logs", err);
+            }
+        }
+
+        // Poll every 2 seconds
+        setInterval(fetchLogs, 2000);
+        fetchLogs();
+    </script>
+</body>
+
+</html>
