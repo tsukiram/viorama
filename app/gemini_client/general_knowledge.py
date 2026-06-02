@@ -138,9 +138,26 @@ class GeneralKnowledgeSystem:
                     full_text += piece
                     yield ('chunk', piece)
         except Exception as e:
-            print(f"[GeneralKnowledge] Streaming error for session {self.session_id}: {e}")
-            yield ('error', str(e))
-            return
+            if "client has been closed" in str(e).lower():
+                # Client expired — clear cache and reinitialize for next request
+                GeneralKnowledgeSystem.clear_session(self.session_id)
+                try:
+                    self._initialize_client()
+                    stream2 = self.agent.send_message_stream(formatted_input)
+                    for chunk in stream2:
+                        last_chunk = chunk
+                        piece = getattr(chunk, 'text', None) or ''
+                        if piece:
+                            full_text += piece
+                            yield ('chunk', piece)
+                except Exception as e2:
+                    print(f"[GeneralKnowledge] Streaming error after reinit for session {self.session_id}: {e2}")
+                    yield ('error', str(e2))
+                    return
+            else:
+                print(f"[GeneralKnowledge] Streaming error for session {self.session_id}: {e}")
+                yield ('error', str(e))
+                return
 
         # Log token usage from final chunk metadata if available
         try:

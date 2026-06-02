@@ -446,6 +446,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 window.history.replaceState({}, '', `/general/${evt.session_id}`);
                             } catch (_) {}
                         }
+                    } else if (evt.type === 'title_update') {
+                        const item = document.querySelector(`.session-item[data-session-id="${evt.session_id}"] .session-title`);
+                        if (item) item.textContent = evt.title;
                     } else if (evt.type === 'chunk') {
                         ensureStreamingBubble();
                         accumulated += evt.text || '';

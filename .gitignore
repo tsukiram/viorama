@@ -24,6 +24,29 @@ stderr.log
 .env.*
 !.env.example
 
+# Thesis & dokumen pribadi
+thesis/
+screenshots/
+*.docx
+*.xlsx
+~$*
+
+# Data responden & akun testing
+akun_responden.txt
+
+# Script deploy & testing (berisi kredensial/IP server)
+deploy.sh
+run_blackbox_test.py
+run_blackbox_fast.py
+run_cm_evaluation.py
+run_cm_evaluation_v2.py
+fill_blackbox_docs.py
+generate_bab3_*.py
+update_blackbox_docs.py
+add_keterangan_blackbox.py
+fix_*.py
+merge_db.py
+
 # OS / editor
 .DS_Store
 .vscode/

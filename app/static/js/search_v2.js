@@ -38,6 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentChatId = null;
     let pollingInterval = null;
 
+    // Filter state — dikirim bersama setiap pencarian.
+    const filterState = {
+        yearFrom:    '',       // YYYY (string), kosong = tidak filter
+        yearTo:      '',
+        paperType:   '',       // '' | 'skripsi' | 'tesis' | 'article' | 'book' | dst.
+    };
+
+    const buildFilterPayload = () => ({
+        date_from:   filterState.yearFrom ? `${filterState.yearFrom}-01-01` : '',
+        date_to:     filterState.yearTo   ? `${filterState.yearTo}-12-31`   : '',
+        paper_type:  filterState.paperType,
+    });
+
     // ===== Helpers =====
     const showModal = (m) => { if (m) { m.classList.add('visible'); document.body.style.overflow = 'hidden'; } };
     const hideModal = (m) => { if (m) { m.classList.remove('visible'); document.body.style.overflow = ''; } };
@@ -97,6 +110,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // ===== Filter popup (di kanan textarea, expand ke atas) =====
+    const filterTrigger = document.getElementById('v2-filter-trigger');
+    const filterPopup   = document.getElementById('v2-filter-popup');
+    const filterBadges  = document.getElementById('v2-filter-badges');
+    const dateFromInp   = document.getElementById('v2-date-from');
+    const dateToInp     = document.getElementById('v2-date-to');
+    const typeSelect    = document.getElementById('v2-filter-type');
+    const filterReset   = document.getElementById('v2-filter-reset');
+
+    const _renderFilterBadges = () => {
+        if (!filterBadges) return;
+        const tags = [];
+        if (filterState.yearFrom || filterState.yearTo) {
+            const f = filterState.yearFrom || '...';
+            const t = filterState.yearTo   || '...';
+            tags.push(`${f}–${t}`);
+        }
+        if (filterState.paperType) {
+            // Pakai label dari <option> agar nama yg ditampilkan rapi (mis. "Artikel Jurnal")
+            const opt = typeSelect?.querySelector(`option[value="${filterState.paperType}"]`);
+            tags.push(opt ? opt.textContent : filterState.paperType);
+        }
+        filterBadges.innerHTML = tags.length
+            ? tags.map(t => `<span class="v2-filter-badge">${t}</span>`).join('')
+            : '';
+        if (filterTrigger) {
+            filterTrigger.classList.toggle('has-badges', tags.length > 0);
+        }
+    };
+
+    const _toggleFilterPopup = (force) => {
+        if (!filterPopup || !filterTrigger) return;
+        const isOpen = !filterPopup.hidden;
+        const next = typeof force === 'boolean' ? force : !isOpen;
+        filterPopup.hidden = !next;
+        filterTrigger.setAttribute('aria-expanded', next ? 'true' : 'false');
+        filterTrigger.classList.toggle('is-open', next);
+    };
+
+    if (filterTrigger) {
+        filterTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            _toggleFilterPopup();
+        });
+    }
+    document.addEventListener('click', (e) => {
+        if (!filterPopup || filterPopup.hidden) return;
+        if (!e.target.closest('#v2-filter-bar')) _toggleFilterPopup(false);
+    });
+
+    // Year inputs (from/to)
+    const _onYearChange = () => {
+        filterState.yearFrom = (dateFromInp?.value || '').trim();
+        filterState.yearTo   = (dateToInp?.value   || '').trim();
+        _renderFilterBadges();
+    };
+    if (dateFromInp) dateFromInp.addEventListener('input', _onYearChange);
+    if (dateToInp)   dateToInp.addEventListener('input', _onYearChange);
+
+    // Tipe karya dropdown
+    if (typeSelect) {
+        typeSelect.addEventListener('change', () => {
+            filterState.paperType = typeSelect.value;
+            _renderFilterBadges();
+        });
+    }
+
+    // Reset filter
+    if (filterReset) {
+        filterReset.addEventListener('click', () => {
+            filterState.yearFrom = '';
+            filterState.yearTo = '';
+            filterState.paperType = '';
+            if (dateFromInp) dateFromInp.value = '';
+            if (dateToInp)   dateToInp.value = '';
+            if (typeSelect)  typeSelect.value = '';
+            _renderFilterBadges();
+        });
+    }
+
     // ===== Sidebar toggle =====
     if (chatSidebar && minimizeBtn && maximizeBtn) {
         if (localStorage.getItem('sidebarMinimized') === 'true') {
@@ -112,31 +205,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ===== Mobile sidebar toggle (tap header or arrow to expand/collapse) =====
+    const sidebarHeader = document.querySelector('.sidebar-header');
+    if (sidebarHeader && chatSidebar) {
+        sidebarHeader.addEventListener('click', (e) => {
+            if (window.innerWidth > 768) return;
+            chatSidebar.classList.toggle('expanded');
+        });
+    }
+
     // ===== Render helpers =====
     const ensureChatDisplay = () => {
         let container = document.getElementById('chat-display');
-        if (container && container.style.display !== 'none') return container;
 
-        // First message — promote welcome → active
-        const welcomeBanner = document.querySelector('.welcome-banner');
-        const suggestionsGrid = document.querySelector('.suggestion-cards-grid');
-        if (welcomeBanner) welcomeBanner.remove();
-        if (suggestionsGrid) suggestionsGrid.remove();
-
-        if (!container) {
-            const main = document.querySelector('.chat-main');
-            const placeholder = main?.querySelector('.chat-container-placeholder');
-            if (placeholder) placeholder.remove();
-            const active = document.createElement('div');
-            active.className = 'chat-container-active neo-card';
-            container = document.createElement('div');
-            container.id = 'chat-display';
-            container.className = 'chat-display';
-            active.appendChild(container);
-            const inputAreaEl = main?.querySelector('.chat-input-area');
-            if (inputAreaEl) main.insertBefore(active, inputAreaEl);
-            else if (main) main.appendChild(active);
+        // Kalau chat-display sudah punya wrapper kotak putih (.chat-container-active),
+        // tinggal pakai (kasus halaman dengan current_session).
+        if (container && container.closest('.chat-container-active')) {
+            container.style.display = 'flex';
+            return container;
         }
+
+        // Kalau ada chat-display tanpa wrapper (placeholder kosong di halaman baru),
+        // buang dulu beserta placeholder-nya supaya bisa kita ganti dengan kotak putih.
+        if (container) {
+            container.closest('.chat-container-placeholder')?.remove();
+            container.remove();
+            container = null;
+        }
+
+        // First message — hapus welcome banner & suggestion cards
+        document.querySelector('.welcome-banner')?.remove();
+        document.querySelector('.suggestion-cards-grid')?.remove();
+
+        const main = document.querySelector('.chat-main');
+        main?.querySelector('.chat-container-placeholder')?.remove();
+
+        // Bikin kotak putih + chat-display di dalamnya
+        const active = document.createElement('div');
+        active.className = 'chat-container-active neo-card';
+        container = document.createElement('div');
+        container.id = 'chat-display';
+        container.className = 'chat-display';
+        active.appendChild(container);
+
+        const inputAreaEl = main?.querySelector('.chat-input-area');
+        if (inputAreaEl) main.insertBefore(active, inputAreaEl);
+        else if (main) main.appendChild(active);
+
         container.style.display = 'flex';
         return container;
     };
@@ -191,6 +306,142 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     };
 
+    // Typing indicator (3 dot animation) — mirip general inquiries.
+    const showTypingIndicator = () => {
+        const container = ensureChatDisplay();
+        // Hindari duplikat indikator
+        const existing = document.getElementById('typing-indicator');
+        if (existing) return existing;
+
+        const div = document.createElement('div');
+        div.id = 'typing-indicator';
+        div.className = 'message is-ai typing-indicator';
+        div.innerHTML = '<div class="message-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+        container.appendChild(div);
+        scrollToBottom();
+        return div;
+    };
+
+    const removeTypingIndicator = () => {
+        document.getElementById('typing-indicator')?.remove();
+    };
+
+    // Typewriter: tampilkan teks per-karakter walau server kirim chunk besar.
+    const createTypewriter = (bubbleDiv, onUpdate) => {
+        let pending = '';
+        let displayed = '';
+        let streamEnded = false;
+        let rafId = null;
+        let lastTick = 0;
+        let resolveDone = null;
+        const donePromise = new Promise((res) => { resolveDone = res; });
+        const baseCharsPerSec = 120;
+
+        const renderBubble = () => {
+            const cursor = (streamEnded && pending.length === 0) ? '' : '<span class="stream-cursor"></span>';
+            try {
+                bubbleDiv.innerHTML = (typeof marked !== 'undefined')
+                    ? marked.parse(displayed, { breaks: true }) + cursor
+                    : escapeHtml(displayed).replace(/\n/g, '<br>') + cursor;
+            } catch {
+                bubbleDiv.innerHTML = escapeHtml(displayed).replace(/\n/g, '<br>') + cursor;
+            }
+        };
+
+        const tick = (ts) => {
+            if (!lastTick) lastTick = ts;
+            const dt = ts - lastTick;
+            lastTick = ts;
+
+            const backlog = pending.length;
+            let cps = baseCharsPerSec;
+            if (backlog > 600) cps = baseCharsPerSec * 6;
+            else if (backlog > 300) cps = baseCharsPerSec * 3;
+            else if (backlog > 120) cps = baseCharsPerSec * 1.8;
+
+            let chars = Math.max(1, Math.floor((cps * dt) / 1000));
+            if (chars > pending.length) chars = pending.length;
+
+            if (chars > 0) {
+                displayed += pending.slice(0, chars);
+                pending = pending.slice(chars);
+                renderBubble();
+                if (onUpdate) onUpdate(displayed);
+            }
+
+            if (streamEnded && pending.length === 0) {
+                rafId = null;
+                if (resolveDone) resolveDone(displayed);
+                return;
+            }
+            rafId = requestAnimationFrame(tick);
+        };
+
+        const start = () => {
+            if (rafId == null) {
+                lastTick = 0;
+                rafId = requestAnimationFrame(tick);
+            }
+        };
+
+        return {
+            push(text) {
+                if (!text) return;
+                pending += text;
+                start();
+            },
+            end() {
+                streamEnded = true;
+                start();
+                return donePromise;
+            },
+            flushNow() {
+                if (pending.length > 0) {
+                    displayed += pending;
+                    pending = '';
+                    renderBubble();
+                }
+                streamEnded = true;
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = null;
+                renderBubble();
+                if (resolveDone) resolveDone(displayed);
+                return displayed;
+            },
+            getDisplayed() { return displayed; },
+        };
+    };
+
+    const addSessionToSidebar = (sessionId, title) => {
+        if (!sessionList) return;
+        const empty = sessionList.querySelector('.empty-history');
+        if (empty) empty.remove();
+        sessionList.querySelectorAll('.session-item.active').forEach((el) => el.classList.remove('active'));
+
+        const li = document.createElement('li');
+        li.className = 'session-item active';
+        li.dataset.sessionId = sessionId;
+        li.innerHTML = `
+            <a href="/search-v2/${sessionId}" class="session-link">
+                <span class="session-title"></span>
+            </a>
+            <button class="session-menu-btn" title="Options">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
+            <div class="session-menu-dropdown">
+                <button class="menu-item rename-session-btn">
+                    <i class="fas fa-edit"></i>
+                    <span>Rename</span>
+                </button>
+                <button class="menu-item delete-session-btn">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Delete</span>
+                </button>
+            </div>`;
+        li.querySelector('.session-title').textContent = title || 'New Search';
+        sessionList.insertBefore(li, sessionList.firstChild);
+    };
+
     // ===== Search results UI inside an AI message =====
     const ensureResultsContainer = (aiMessageDiv) => {
         let results = aiMessageDiv.querySelector('.v2-search-results');
@@ -203,21 +454,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const ensureCancelBar = (aiMessageDiv, chatId) => {
-        let bar = aiMessageDiv.querySelector('.v2-cancel-bar');
+        let bar = aiMessageDiv.querySelector('.v2-search-status-bar');
         if (bar) return bar;
         bar = document.createElement('div');
-        bar.className = 'v2-cancel-bar';
-        bar.style.cssText = 'display:flex;justify-content:flex-end;margin-top:6px;';
+        bar.className = 'v2-search-status-bar';
         bar.innerHTML = `
-            <button class="v2-cancel-btn" type="button">
-                <i class="fas fa-times"></i> Cancel
+            <div class="v2-search-status-text">
+                <span class="v2-search-pulse"></span>
+                <span>Sedang mencari di Digilib</span>
+            </div>
+            <button class="v2-cancel-btn" type="button" title="Batalkan pencarian">
+                <i class="fas fa-times"></i>
+                <span>Berhenti</span>
             </button>`;
-        aiMessageDiv.querySelector('.message-bubble')?.appendChild(bar);
+        // Insert SEBELUM v2-search-results biar tampil di atas
+        const bubble = aiMessageDiv.querySelector('.message-bubble');
+        const results = bubble?.querySelector('.v2-search-results');
+        if (bubble && results) bubble.insertBefore(bar, results);
+        else if (bubble) bubble.appendChild(bar);
+
         const btn = bar.querySelector('.v2-cancel-btn');
         btn.addEventListener('click', async () => {
             if (!chatId) return;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Berhenti...</span>';
             try {
                 await fetch(`/search-v2/cancel_search/${chatId}`, { method: 'POST' });
             } catch (e) { console.error(e); }
@@ -226,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const removeCancelBar = (aiMessageDiv) => {
-        aiMessageDiv?.querySelector('.v2-cancel-bar')?.remove();
+        aiMessageDiv?.querySelector('.v2-search-status-bar')?.remove();
     };
 
     const renderSectionHeader = (resultsContainer, sectionName) => {
@@ -245,11 +505,29 @@ document.addEventListener('DOMContentLoaded', () => {
         return header;
     };
 
-    const renderKeywordBlock = (resultsContainer, kr) => {
-        const { keyword, kw_type, count, results } = kr;
+    // Helper: cari blok keyword yg sudah ada di DOM (untuk dimorph dari "searching" ke result).
+    const findKeywordBlock = (resultsContainer, keyword) => {
+        const blocks = resultsContainer.querySelectorAll('.v2-keyword-block');
+        for (const b of blocks) {
+            if (b.dataset.keyword === keyword) return b;
+        }
+        return null;
+    };
+
+    // Helper: trigger entry animation sekali, lalu auto-remove class supaya
+    // tidak ikut re-trigger saat class lain diubah.
+    const _triggerEnterAnim = (el) => {
+        el.classList.add('v2-block-enter');
+        setTimeout(() => el.classList.remove('v2-block-enter'), 450);
+    };
+
+    // State 1: keyword baru mulai dicari — tampilkan placeholder dengan spinner.
+    const renderKeywordStart = (resultsContainer, event) => {
+        const { keyword, kw_type } = event;
+        if (findKeywordBlock(resultsContainer, keyword)) return;
+
         const block = document.createElement('div');
-        block.className = 'v2-keyword-block' + (kw_type === 'tambahan' ? ' is-tambahan' : '');
-        block.classList.add(count > 0 ? 'has-results' : 'no-results');
+        block.className = 'v2-keyword-block is-searching' + (kw_type === 'tambahan' ? ' is-tambahan' : '');
         block.dataset.keyword = keyword;
 
         const summary = document.createElement('div');
@@ -257,10 +535,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const text = document.createElement('div');
         text.className = 'v2-kw-summary-text';
+        text.innerHTML = `
+            <span class="v2-spinner"></span>
+            <span class="v2-kw-label">Mencari kata kunci</span>
+            <span class="kw-quote">${escapeHtml(keyword)}</span>
+        `;
+        summary.appendChild(text);
+        block.appendChild(summary);
+
+        resultsContainer.appendChild(block);
+        _triggerEnterAnim(block);
+        scrollToBottom();
+        return block;
+    };
+
+    // State 2: hasil keyword diterima — morph blok jadi state "selesai".
+    const renderKeywordBlock = (resultsContainer, kr) => {
+        const { keyword, kw_type, count, results } = kr;
+
+        // Cari blok yg sudah ada (dari keyword_start) — kalau ada, morph; kalau tidak, bikin baru.
+        let block = findKeywordBlock(resultsContainer, keyword);
+
+        if (!block) {
+            block = document.createElement('div');
+            block.dataset.keyword = keyword;
+            resultsContainer.appendChild(block);
+            // Block baru (mis. dari restorePersistedResults) — kasih entry animation
+            _triggerEnterAnim(block);
+        }
+
+        block.className = 'v2-keyword-block is-done'
+            + (kw_type === 'tambahan' ? ' is-tambahan' : '')
+            + (count > 0 ? ' has-results' : ' no-results');
+
+        // Wipe & re-render
+        block.innerHTML = '';
+
+        const summary = document.createElement('div');
+        summary.className = 'v2-kw-summary';
+
+        const text = document.createElement('div');
+        text.className = 'v2-kw-summary-text';
         if (count > 0) {
-            text.innerHTML = `Saya menemukan <strong>${count} paper</strong> dengan kata kunci <span class="kw-quote">${escapeHtml(keyword)}</span>`;
+            text.innerHTML = `
+                <span class="v2-status-icon is-success"><i class="fas fa-check"></i></span>
+                <span class="kw-quote">${escapeHtml(keyword)}</span>
+                <span class="v2-kw-count">${count} karya tulis</span>
+            `;
         } else {
-            text.innerHTML = `Saya menemukan <strong>0 paper</strong> dengan kata kunci <span class="kw-quote">${escapeHtml(keyword)}</span>`;
+            text.innerHTML = `
+                <span class="v2-status-icon is-empty"><i class="far fa-circle"></i></span>
+                <span class="kw-quote">${escapeHtml(keyword)}</span>
+                <span class="v2-kw-count is-zero">tidak ditemukan</span>
+            `;
         }
         summary.appendChild(text);
 
@@ -268,7 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const toggle = document.createElement('button');
             toggle.className = 'v2-kw-toggle';
             toggle.type = 'button';
-            toggle.innerHTML = `lihat detail <i class="fas fa-chevron-down chevron"></i>`;
+            toggle.innerHTML = `<i class="fas fa-chevron-down chevron"></i>`;
             summary.appendChild(toggle);
         }
         block.appendChild(summary);
@@ -292,22 +619,66 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             block.appendChild(list);
 
-            // Toggle handler
             block.querySelector('.v2-kw-summary').addEventListener('click', (e) => {
                 if (e.target.closest('.v2-paper-link')) return;
                 block.classList.toggle('expanded');
             });
         }
 
-        resultsContainer.appendChild(block);
         scrollToBottom();
         return block;
+    };
+
+    // ===== Event queue: render satu per satu dengan jeda kecil =====
+    // Walau backend kirim banyak event sekaligus dari polling (sering terjadi
+    // di production karena backend cepat), queue ini memastikan tampilan
+    // muncul one-by-one dengan animasi rapi.
+    const _eventQueue = [];
+    let _queueRunning = false;
+
+    // Delay PER tipe event — keyword_start ditahan lebih lama biar narasi
+    // "sedang mencari kata kunci X" benar-benar terbaca user. Kalau backend
+    // di VPS sangat cepat dan event datang barengan, queue ini yang melebar.
+    const _eventDelay = (evt) => {
+        switch (evt && evt.type) {
+            case 'section':         return 300;
+            case 'keyword_start':   return 1000;  // searching state visible 1 detik penuh
+            case 'keyword_result':  return 400;
+            case 'cancelled':       return 200;
+            default:                return 0;
+        }
+    };
+
+    const _enqueue = (task) => {
+        _eventQueue.push(task);
+        if (!_queueRunning) _processQueue();
+    };
+
+    const _processQueue = async () => {
+        _queueRunning = true;
+        while (_eventQueue.length > 0) {
+            const task = _eventQueue.shift();
+            try { await task(); } catch (e) { console.error('[v2 queue]', e); }
+        }
+        _queueRunning = false;
+    };
+
+    const _waitQueueDrain = () => {
+        return new Promise((resolve) => {
+            const tick = () => {
+                if (!_queueRunning && _eventQueue.length === 0) resolve();
+                else setTimeout(tick, 60);
+            };
+            tick();
+        });
     };
 
     const renderEvent = (aiMessageDiv, event) => {
         const results = ensureResultsContainer(aiMessageDiv);
         if (event.type === 'section') {
             renderSectionHeader(results, event.section);
+        } else if (event.type === 'keyword_start') {
+            renderKeywordStart(results, event);
         } else if (event.type === 'keyword_result') {
             renderKeywordBlock(results, event);
         } else if (event.type === 'cancelled') {
@@ -323,22 +694,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ===== Final response handling (e.g. all_empty fallback) =====
-    const renderFinalNote = (aiMessageDiv, finalText, allEmpty) => {
-        if (!finalText || !allEmpty) return;
-        // Append fallback message as a separate bubble below results.
+    // ===== Final response handling =====
+    // Render summary text setelah pencarian selesai.
+    // - animate=true (default): tampilkan loader "Membuat ringkasan..." dulu,
+    //   lalu typewriter teks summary-nya (seperti chat AI).
+    // - animate=false: render langsung (dipakai saat restorasi halaman).
+    const renderFinalNote = (aiMessageDiv, finalText, allEmpty, animate = true) => {
+        if (!finalText) return;
+        if (aiMessageDiv.querySelector('.v2-final-note')) return; // anti dup
+
         const note = document.createElement('div');
-        note.className = 'v2-final-note';
-        note.style.cssText = 'margin-top:10px;padding:10px 12px;background:#FFF8E1;border-radius:8px;border-left:3px solid #FBC02D;color:#5D4037;';
-        try {
-            note.innerHTML = (typeof marked !== 'undefined')
-                ? marked.parse(finalText, { breaks: true })
-                : escapeHtml(finalText).replace(/\n/g, '<br>');
-        } catch {
-            note.innerHTML = escapeHtml(finalText).replace(/\n/g, '<br>');
-        }
+        note.className = 'v2-final-note' + (allEmpty ? ' is-empty' : '');
         aiMessageDiv.querySelector('.message-bubble')?.appendChild(note);
+        _triggerEnterAnim(note);
+
+        const renderInstant = () => {
+            try {
+                note.innerHTML = (typeof marked !== 'undefined')
+                    ? marked.parse(finalText, { breaks: true })
+                    : escapeHtml(finalText).replace(/\n/g, '<br>');
+            } catch {
+                note.innerHTML = escapeHtml(finalText).replace(/\n/g, '<br>');
+            }
+            scrollToBottom();
+        };
+
+        if (!animate) {
+            renderInstant();
+            return;
+        }
+
+        // Step 1: tampilkan loader dengan spinner
+        note.classList.add('is-generating');
+        note.innerHTML = `
+            <div class="v2-summary-loading">
+                <span class="v2-spinner"></span>
+                <span>Membuat ringkasan</span>
+                <span class="v2-summary-dots"><span></span><span></span><span></span></span>
+            </div>
+        `;
         scrollToBottom();
+
+        // Step 2: setelah jeda singkat, typewriter teks asli
+        setTimeout(() => {
+            note.classList.remove('is-generating');
+            note.innerHTML = ''; // bersihkan loader
+            const typewriter = createTypewriter(note, () => scrollToBottom());
+            typewriter.push(finalText);
+            typewriter.end();
+        }, 700);
     };
 
     // ===== Polling =====
@@ -381,23 +785,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await r.json();
 
                 if (Array.isArray(data.new_events) && data.new_events.length > 0) {
-                    data.new_events.forEach((evt) => renderEvent(aiMessageDiv, evt));
+                    // Enqueue tiap event sebagai task — delay per tipe event
+                    data.new_events.forEach((evt) => {
+                        _enqueue(async () => {
+                            renderEvent(aiMessageDiv, evt);
+                            const d = _eventDelay(evt);
+                            if (d > 0) await new Promise((r) => setTimeout(r, d));
+                        });
+                    });
                     lastStep = data.latest_step_number;
                     lastProgressAt = now;
                 }
 
                 if (data.is_completed) {
                     _stopPolling();
+                    // Tunggu queue habis dulu supaya keyword blocks selesai render sebelum final note
+                    await _waitQueueDrain();
                     removeCancelBar(aiMessageDiv);
                     if (data.result) {
-                        if (data.result.all_empty && data.result.final_response) {
-                            renderFinalNote(aiMessageDiv, data.result.final_response, true);
+                        if (data.result.final_response) {
+                            renderFinalNote(
+                                aiMessageDiv,
+                                data.result.final_response,
+                                !!data.result.all_empty,
+                            );
                         }
                         // Persist search_steps to data attribute for restoration
                         try {
                             aiMessageDiv.dataset.searchSteps = JSON.stringify({
                                 summary: data.result.summary || [],
                                 all_empty: !!data.result.all_empty,
+                                final_response: data.result.final_response || '',
                             });
                         } catch (e) { /* ignore */ }
                     }
@@ -407,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.is_error) return failFast(data.error || 'Pencarian gagal.');
                 if (data.is_cancelled) {
                     _stopPolling();
+                    await _waitQueueDrain();
                     removeCancelBar(aiMessageDiv);
                     if (!aiMessageDiv.querySelector('.v2-search-results .v2-keyword-block.no-results .fa-ban')) {
                         renderEvent(aiMessageDiv, { type: 'cancelled' });
@@ -452,61 +871,145 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ===== Send message =====
+    // ===== Send message (streaming) =====
     const handleSend = async (msg) => {
         if (isProcessing) return;
         const sessionId = getCurrentSessionId();
         lockInput();
         appendUserMessage(msg);
-        const loadingBubble = appendLoadingBubble('Memproses pesan...');
+        showTypingIndicator();
+
+        let aiMessageDiv = null;
+        let bubbleDiv = null;
+        let typewriter = null;
+        let accumulated = '';
+        let chatId = null;
+        let needsSearch = false;
+        let searchStarted = false;
+        let errorMsg = null;
+
+        const ensureStreamingBubble = () => {
+            if (aiMessageDiv) return;
+            removeTypingIndicator();
+            const container = ensureChatDisplay();
+            aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message is-ai is-streaming';
+            bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.innerHTML = '<span class="stream-cursor"></span>';
+            aiMessageDiv.appendChild(bubbleDiv);
+            container.appendChild(aiMessageDiv);
+            scrollToBottom();
+            typewriter = createTypewriter(bubbleDiv, () => scrollToBottom());
+        };
 
         try {
-            const r = await fetch('/search-v2/chat', {
+            const response = await fetch('/search-v2/chat_stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg, session_id: sessionId }),
+                body: JSON.stringify({
+                    message: msg,
+                    session_id: sessionId,
+                    filters: buildFilterPayload(),
+                }),
             });
-            const data = await r.json();
 
-            loadingBubble?.remove();
-
-            if (data.error) {
-                appendAiMessage(`**Error:** ${data.error}`, null);
-                unlockInput();
-                return;
+            if (!response.ok || !response.body) {
+                let em = `HTTP ${response.status}`;
+                try {
+                    const j = await response.json();
+                    if (j.error) em = j.error;
+                } catch (_) {}
+                throw new Error(em);
             }
 
-            if (data.new_session_id && data.new_session_id !== 'null') {
-                // Show "redirecting" then go to session URL
-                const redir = document.createElement('div');
-                redir.className = 'message is-ai';
-                redir.innerHTML = `<div class="message-bubble"><i class="fas fa-check-circle" style="color:#66BB6A;"></i> Sesi siap, mengalihkan...</div>`;
-                document.getElementById('chat-display')?.appendChild(redir);
-                window.location.replace(`/search-v2/${data.new_session_id}`);
-                return;
-            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
 
-            const aiDiv = appendAiMessage(data.initial_response || '', data.chat_id);
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
 
-            if (data.needs_search && data.chat_id) {
-                if (data.search_started) {
-                    // Backend already kicked off the search — just attach UI and poll.
-                    currentChatId = data.chat_id;
-                    ensureCancelBar(aiDiv, data.chat_id);
-                    _pollProgress(data.chat_id, aiDiv, 0);
-                } else if (data.system_output) {
-                    // Fallback: explicitly start search via dedicated endpoint.
-                    await startSearchProcess(data.chat_id, data.system_output, aiDiv);
-                } else {
-                    unlockInput();
+                let sep;
+                while ((sep = buffer.indexOf('\n\n')) !== -1) {
+                    const raw = buffer.slice(0, sep);
+                    buffer = buffer.slice(sep + 2);
+                    const dataLine = raw.split('\n').find((l) => l.startsWith('data:'));
+                    if (!dataLine) continue;
+                    const payload = dataLine.replace(/^data:\s*/, '').trim();
+                    if (!payload) continue;
+
+                    let evt;
+                    try { evt = JSON.parse(payload); } catch { continue; }
+
+                    if (evt.type === 'meta') {
+                        if (evt.new_session) {
+                            addSessionToSidebar(evt.session_id, evt.session_title);
+                            try { window.history.replaceState({}, '', `/search-v2/${evt.session_id}`); } catch (_) {}
+                        }
+                    } else if (evt.type === 'title_update') {
+                        const item = document.querySelector(`.session-item[data-session-id="${evt.session_id}"] .session-title`);
+                        if (item) item.textContent = evt.title;
+                    } else if (evt.type === 'chunk') {
+                        ensureStreamingBubble();
+                        accumulated += evt.text || '';
+                        typewriter.push(evt.text || '');
+                    } else if (evt.type === 'error') {
+                        errorMsg = evt.message || 'Terjadi kesalahan';
+                        ensureStreamingBubble();
+                        const note = `\n\n_${errorMsg}_`;
+                        accumulated += note;
+                        typewriter.push(note);
+                    } else if (evt.type === 'done') {
+                        chatId = evt.chat_id;
+                        needsSearch = !!evt.needs_search;
+                        searchStarted = !!evt.search_started;
+                    }
                 }
+            }
+
+            if (typewriter) await typewriter.end();
+            removeTypingIndicator();
+
+            // Finalize bubble: render markdown bersih, tambah copy button + dataset chat_id
+            if (aiMessageDiv) {
+                aiMessageDiv.classList.remove('is-streaming');
+                if (chatId) aiMessageDiv.dataset.chatId = chatId;
+                try {
+                    bubbleDiv.innerHTML = (typeof marked !== 'undefined')
+                        ? marked.parse(accumulated || '', { breaks: true })
+                        : (accumulated || '').replace(/\n/g, '<br>');
+                } catch {
+                    bubbleDiv.innerHTML = (accumulated || '').replace(/\n/g, '<br>');
+                }
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.title = 'Copy text';
+                copyBtn.innerHTML = '<i class="far fa-copy"></i><i class="fas fa-check"></i>';
+                aiMessageDiv.appendChild(copyBtn);
+            } else if (accumulated) {
+                aiMessageDiv = appendAiMessage(accumulated, chatId);
+            }
+
+            if (needsSearch && chatId && aiMessageDiv) {
+                currentChatId = chatId;
+                ensureCancelBar(aiMessageDiv, chatId);
+                _pollProgress(chatId, aiMessageDiv, 0);
             } else {
                 unlockInput();
             }
         } catch (e) {
-            console.error(e);
-            loadingBubble?.remove();
-            appendAiMessage('Error mengirim pesan. Silakan refresh halaman.', null);
+            console.error('[V2 stream] error:', e);
+            if (typewriter) typewriter.flushNow();
+            removeTypingIndicator();
+            if (aiMessageDiv) {
+                aiMessageDiv.classList.remove('is-streaming');
+                bubbleDiv.innerHTML = `<strong>Error:</strong> ${escapeHtml(e.message || 'Terjadi kesalahan.')}`;
+            } else {
+                appendAiMessage(`**Error:** ${e.message || 'Terjadi kesalahan.'}`, null);
+            }
             unlockInput();
         }
     };
@@ -539,8 +1042,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
 
-                if (parsed.all_empty && parsed.final_response) {
-                    renderFinalNote(aiDiv, parsed.final_response, true);
+                if (parsed.final_response) {
+                    // Restorasi (reload page) — render langsung, tidak perlu animasi
+                    renderFinalNote(aiDiv, parsed.final_response, !!parsed.all_empty, false);
                 }
             } catch (e) {
                 console.warn('[V2] restore failed:', e);

@@ -34,6 +34,8 @@ def register():
         error = None
         if not username or not password or not confirm_password:
             error = 'Semua field wajib diisi.'
+        elif len(password) < 8:
+            error = 'Password minimal 8 karakter.'
         elif password != confirm_password:
             error = 'Password tidak cocok.'
         elif User.query.filter_by(username=username).first():

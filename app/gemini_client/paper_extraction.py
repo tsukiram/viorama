@@ -28,6 +28,9 @@ class PaperExtractionSystem:
                 if abstract_p:
                     abstract = abstract_p.get_text(strip=True)
             
+            kw_meta = soup.find('meta', attrs={'name': 'eprints.keywords'})
+            keywords = kw_meta['content'].strip() if kw_meta and kw_meta.get('content') else ""
+
             preview_link = ""
             full_text_link = ""
             dc_identifiers = soup.find_all('meta', attrs={'name': 'DC.identifier'})
@@ -37,11 +40,12 @@ class PaperExtractionSystem:
                     preview_link = content
                 elif "BAB-II_sampai_SEBELUM-BAB-TERAKHIR.pdf" in content:
                     full_text_link = content
-            
+
             return {
                 "title": title,
                 "citation": citation,
                 "abstract": abstract,
+                "keywords": keywords,
                 "preview_link": preview_link,
                 "full_text_link": full_text_link,
                 "url": url,

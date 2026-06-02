@@ -775,6 +775,30 @@
     padding: 18px 20px;
 }
 
+/* Cursor berkedip saat streaming token */
+.stream-cursor {
+    display: inline-block;
+    width: 7px;
+    height: 1em;
+    background: var(--primary);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    border-radius: 2px;
+    animation: stream-blink 1s steps(2, start) infinite;
+}
+
+@keyframes stream-blink {
+    to { visibility: hidden; }
+}
+
+.message.is-ai.is-streaming .message-bubble {
+    word-wrap: break-word;
+}
+
+.message.is-ai.is-streaming .message-bubble > p:last-child {
+    margin-bottom: 0;
+}
+
 .typing-indicator .dot {
     display: inline-block;
     width: 8px;

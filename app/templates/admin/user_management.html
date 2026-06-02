@@ -188,6 +188,29 @@
             border-color: var(--danger-light);
         }
 
+        .btn-history {
+            background: var(--primary-light);
+            border: none;
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-history:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .actions-cell { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
         /* FLASH MESSAGES */
         .flash-messages {
             margin-bottom: 24px;
@@ -278,17 +301,20 @@
                                     sessions</div>
                             </td>
                             <td>
-                                {% if u_data.username == session['username'] %}
-                                <span style="font-size:12px; color:#cbd5e1; font-style:italic;">Current User</span>
-                                {% else %}
-                                <form action="{{ url_for('admin.delete_user') }}" method="POST"
-                                    onsubmit="return confirm('⚠️ CRITICAL WARNING ⚠️\n\nYou are about to delete user: {{ u_data.username }}\n\nThis action will PERMANENTLY ERASE:\n- All chat history\n- Saved papers\n- Usage logs\n\nThis cannot be undone. Are you sure?');">
-                                    <input type="hidden" name="user_id" value="{{ u_data.id }}">
-                                    <button type="submit" class="btn-delete">
-                                        <i class="fas fa-trash"></i> Delete Account
-                                    </button>
-                                </form>
-                                {% endif %}
+                                <div class="actions-cell">
+                                    <a href="{{ url_for('admin.user_history', target_user_id=u_data.id) }}" class="btn-history">
+                                        <i class="fas fa-history"></i> History
+                                    </a>
+                                    {% if u_data.username != session['username'] %}
+                                    <form action="{{ url_for('admin.delete_user') }}" method="POST"
+                                        onsubmit="return confirm('⚠️ CRITICAL WARNING ⚠️\n\nYou are about to delete user: {{ u_data.username }}\n\nThis action will PERMANENTLY ERASE:\n- All chat history\n- Saved papers\n- Usage logs\n\nThis cannot be undone. Are you sure?');">
+                                        <input type="hidden" name="user_id" value="{{ u_data.id }}">
+                                        <button type="submit" class="btn-delete">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% else %}

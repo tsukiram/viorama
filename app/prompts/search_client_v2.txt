@@ -23,9 +23,10 @@ JANGAN menambahkan teks atau penjelasan apapun di luar block JSON.
 - **tambahan**: kata kunci pelebaran. Sinonim, padanan bahasa lain, istilah lebih general, atau aspek terkait. Berguna kalau "utama" tidak mendapatkan banyak hasil.
 
 ## Jumlah:
-- **2-3 kata kunci utama** (jangan lebih dari 3)
-- **2-3 kata kunci tambahan** (jangan lebih dari 3)
-- Total maksimal 6 kata kunci. Lebih banyak = pencarian lambat.
+- **Tidak ada batas atas** — sebanyak mungkin kata kunci yang BENAR-BENAR RELEVAN.
+- Minimal 3 utama dan 3 tambahan supaya pencarian variatif.
+- ATURAN UTAMA: setiap kata kunci HARUS relevan & spesifik ke kebutuhan user. Kalau hanya ketemu 4 yg relevan, output 4. Kalau ketemu 8 yg relevan, output 8. JANGAN paksa nambah dengan istilah generic ("data", "skripsi", "penelitian") cuma untuk memenuhi jumlah.
+- Topik sempit biasanya 3-5 kata kunci. Topik luas bisa 6-10 atau lebih.
 
 ## Format tiap kata kunci:
 - 1-3 kata saja. JANGAN kalimat penuh.
@@ -43,8 +44,8 @@ JANGAN menambahkan teks atau penjelasan apapun di luar block JSON.
 ## Output:
 ```json
 [
-  {"role": "keywords_utama", "output": ["CNN klasifikasi gambar", "convolutional neural network", "klasifikasi citra"]},
-  {"role": "keywords_tambahan", "output": ["deep learning", "image classification", "jaringan saraf tiruan"]}
+  {"role": "keywords_utama", "output": ["CNN klasifikasi gambar", "convolutional neural network", "klasifikasi citra", "CNN deep learning", "klasifikasi gambar"]},
+  {"role": "keywords_tambahan", "output": ["deep learning", "image classification", "jaringan saraf tiruan", "computer vision"]}
 ]
 ```
 
@@ -56,8 +57,8 @@ JANGAN menambahkan teks atau penjelasan apapun di luar block JSON.
 ## Output:
 ```json
 [
-  {"role": "keywords_utama", "output": ["ekonomi syariah perbankan", "perbankan syariah", "bank syariah"]},
-  {"role": "keywords_tambahan", "output": ["keuangan syariah", "ekonomi islam", "muamalah perbankan"]}
+  {"role": "keywords_utama", "output": ["ekonomi syariah perbankan", "perbankan syariah", "bank syariah", "ekonomi syariah"]},
+  {"role": "keywords_tambahan", "output": ["keuangan syariah", "ekonomi islam", "muamalah perbankan", "lembaga keuangan syariah"]}
 ]
 ```
 
@@ -69,8 +70,21 @@ JANGAN menambahkan teks atau penjelasan apapun di luar block JSON.
 ## Output:
 ```json
 [
-  {"role": "keywords_utama", "output": ["analisis sentimen twitter", "sentimen bahasa indonesia", "sentiment analysis"]},
-  {"role": "keywords_tambahan", "output": ["text mining", "klasifikasi opini", "pengolahan bahasa alami"]}
+  {"role": "keywords_utama", "output": ["analisis sentimen twitter", "sentimen bahasa indonesia", "sentiment analysis", "analisis sentimen", "twitter sentiment"]},
+  {"role": "keywords_tambahan", "output": ["text mining", "klasifikasi opini", "pengolahan bahasa alami", "natural language processing"]}
+]
+```
+
+## Input:
+```json
+[{"role": "user_description", "input": "User mencari skripsi tentang basis data."}]
+```
+
+## Output:
+```json
+[
+  {"role": "keywords_utama", "output": ["basis data", "database", "perancangan basis data", "sistem basis data"]},
+  {"role": "keywords_tambahan", "output": ["sistem informasi", "DBMS", "data warehouse", "manajemen data"]}
 ]
 ```
 

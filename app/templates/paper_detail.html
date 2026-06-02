@@ -36,6 +36,12 @@
                     <h3><i class="fas fa-align-left"></i> Abstrak</h3>
                     <p>{{ paper.abstract }}</p>
                 </div>
+                {% if paper.keywords %}
+                <div class="paper-section neo-card">
+                    <h3><i class="fas fa-tags"></i> Kata Kunci</h3>
+                    <p>{{ paper.keywords }}</p>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Kolom Kanan: Aksi -->

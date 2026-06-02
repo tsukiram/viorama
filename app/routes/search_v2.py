@@ -3,20 +3,79 @@
 # Paper Search v2 — flow simple, static prompt, streaming per keyword.
 # Tidak share state apapun dengan v1 search.
 
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, current_app, Response, stream_with_context
 from app.models.models import User, ChatSession, Chat, SearchProgress, db
 from app.gemini_client.searching_v2 import AcademicSearchSystemV2
 from app.gemini_client.title_generator import TitleGenerator
+from concurrent.futures import ThreadPoolExecutor
 import json
 import time
 import threading
 import traceback
 from datetime import datetime
 
+# Executor untuk title generation paralel (dipakai oleh chat_stream)
+_title_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix='v2-title')
+
+
+def _generate_title_safe(user_input):
+    try:
+        return TitleGenerator.generate_title(user_input)
+    except Exception as e:
+        print(f"[SearchV2-stream] title gen error: {e}")
+        return None
+
 bp = Blueprint('search_v2', __name__, url_prefix='/search-v2')
 
 FEATURE = 'search_v2'
 SEARCH_STALE_SECONDS = 180  # v2 lebih cepat, batas stale lebih pendek
+
+
+# ---------- Filter labels (untuk tampilan ke user) ----------
+_PAPER_TYPE_LABELS = {
+    'article':           'Article',
+    'book_section':      'Book Section',
+    'monograph':         'Monograph',
+    'conference_item':   'Conference or Workshop Item',
+    'book':              'Book',
+    'thesis':            'Thesis',
+    'patent':            'Patent',
+    'image':             'Image',
+    'video':             'Video',
+    'audio':             'Audio',
+    'experiment':        'Experiment',
+    'teaching_resource': 'Teaching Resource',
+    'other':             'Other',
+}
+
+
+def _format_filter_description(filters):
+    """Bangun string deskripsi filter aktif (Bahasa Indonesia, ringkas).
+
+    Hasil contoh: "tahun 2020-2024, tipe Thesis"
+    Kalau tidak ada filter, return string kosong.
+    """
+    if not filters:
+        return ''
+    parts = []
+
+    df = filters.get('date_from') or ''
+    dt = filters.get('date_to') or ''
+    yf = df[:4] if df else ''
+    yt = dt[:4] if dt else ''
+    if yf and yt:
+        parts.append(f"tahun {yf}–{yt}")
+    elif yf:
+        parts.append(f"sejak tahun {yf}")
+    elif yt:
+        parts.append(f"sampai tahun {yt}")
+
+    pt = filters.get('paper_type') or filters.get('thesis_type')
+    if pt:
+        label = _PAPER_TYPE_LABELS.get(pt, pt.title())
+        parts.append(f"tipe {label}")
+
+    return ', '.join(parts)
 
 
 # ---------- Helpers ----------
@@ -50,11 +109,13 @@ def inject_cache_buster():
 
 
 # ---------- Background search worker (shared) ----------
-def _run_keyword_search_background(app, session_id, chat_id, system_output):
+def _run_keyword_search_background(app, session_id, chat_id, system_output, filters=None):
     """Kick off keyword search in a daemon thread.
 
     Used both by /chat (new session inline kickoff) and /search_process (explicit kickoff).
     Caller must have already set chat.search_status='processing' and committed.
+
+    `filters` is optional dict with keys: date_from, date_to, paper_type.
     """
     def run_search():
         with app.app_context():
@@ -64,6 +125,7 @@ def _run_keyword_search_background(app, session_id, chat_id, system_output):
                     user_description=system_output,
                     chat_id=chat_id,
                     app_context=app.app_context(),
+                    filters=filters,
                 )
 
                 summary = []
@@ -89,6 +151,13 @@ def _run_keyword_search_background(app, session_id, chat_id, system_output):
                             {"type": "section", "section": event["section"]},
                             status='processing',
                         )
+                    elif "keyword_start" in event:
+                        ks = event["keyword_start"]
+                        _add_progress_step(
+                            chat_id,
+                            {"type": "keyword_start", **ks},
+                            status='processing',
+                        )
                     elif "keyword_result" in event:
                         kr = event["keyword_result"]
                         _add_progress_step(
@@ -107,18 +176,24 @@ def _run_keyword_search_background(app, session_id, chat_id, system_output):
                 if not chat_obj:
                     return
 
+                final_summary_text = None
                 if all_empty:
                     suggestion = system.request_empty_suggestion(summary)
-                    chat_obj.response = suggestion or "Tidak ada paper ditemukan untuk semua kata kunci."
+                    final_summary_text = suggestion or "Tidak ada karya tulis ditemukan untuk semua kata kunci."
+                    chat_obj.response = final_summary_text
                 else:
                     try:
-                        system.inject_paper_context(summary, app_context=app.app_context())
+                        final_summary_text = system.inject_paper_context(summary, app_context=app.app_context())
                     except Exception as inj_err:
                         print(f"[SearchV2] inject error: {inj_err}")
 
                 chat_obj.search_status = 'completed'
                 chat_obj.search_steps = json.dumps(
-                    {'summary': summary, 'all_empty': all_empty},
+                    {
+                        'summary': summary,
+                        'all_empty': all_empty,
+                        'final_response': final_summary_text or '',
+                    },
                     ensure_ascii=False,
                 )
                 db.session.commit()
@@ -288,6 +363,201 @@ def chat():
         return jsonify({'error': 'An internal server error occurred.'}), 500
 
 
+@bp.route('/chat_stream', methods=['POST'])
+def chat_stream():
+    """Streaming version dari /chat.
+
+    Stream initial_response (jawaban discuss agent untuk user) per-chunk via SSE,
+    lalu kick off keyword search di background. Frontend setelah stream selesai
+    akan polling /check_status seperti biasa untuk hasil pencarian.
+
+    Events:
+      { type: meta, session_id, new_session, session_title }
+      { type: chunk, text }
+      { type: error, message }
+      { type: done, chat_id, needs_search, search_started }
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.json or {}
+    user_input = data.get('message')
+    session_id = data.get('session_id')
+    user_id = session['user_id']
+
+    if not user_input:
+        return jsonify({'error': 'No message provided'}), 400
+
+    # Sanitize filters dari client. Kosong/None = tidak filter.
+    raw_filters = data.get('filters') or {}
+    filters = {
+        'date_from':  (raw_filters.get('date_from') or '').strip() or None,
+        'date_to':    (raw_filters.get('date_to') or '').strip() or None,
+        # paper_type baru menggantikan thesis_type — terima keduanya untuk backward-compat
+        'paper_type': (raw_filters.get('paper_type')
+                       or raw_filters.get('thesis_type')
+                       or '').strip() or None,
+    }
+    has_any_filter = any(filters.values())
+
+    new_session_created = False
+    chat_session = None
+    title_future = None
+
+    try:
+        if not session_id or session_id in ('null', 'undefined'):
+            new_session_created = True
+
+            # Spawn title generation di thread background — jalan paralel dgn discuss agent
+            title_future = _title_executor.submit(_generate_title_safe, user_input)
+
+            # Pakai placeholder title dulu — akan di-update lewat event title_update
+            chat_session = ChatSession(user_id=user_id, feature=FEATURE, title="New Search...")
+            db.session.add(chat_session)
+            db.session.commit()
+            session_id = chat_session.id
+        else:
+            chat_session = ChatSession.query.filter_by(id=session_id, user_id=user_id).first()
+            if not chat_session or chat_session.feature != FEATURE:
+                return jsonify({'error': 'Invalid session'}), 404
+
+        # Save user message (committed sebelum stream supaya history konsisten)
+        user_chat = Chat(
+            session_id=session_id,
+            user_id=user_id,
+            feature=FEATURE,
+            message=user_input,
+            response=None,
+            search_steps=None,
+        )
+        db.session.add(user_chat)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"[SearchV2-stream] setup error: {e}")
+        traceback.print_exc()
+        return jsonify({'error': 'Setup failed'}), 500
+
+    app = current_app._get_current_object()
+    session_title = chat_session.title
+
+    def event_stream():
+        meta = {
+            'type': 'meta',
+            'session_id': session_id,
+            'new_session': new_session_created,
+            'session_title': session_title,
+        }
+        yield f"data: {json.dumps(meta, ensure_ascii=False)}\n\n"
+
+        # Run discuss agent (blocking — Gemini call)
+        try:
+            search_system = AcademicSearchSystemV2(session_id)
+            if not new_session_created:
+                with app.app_context():
+                    previous = Chat.query.filter_by(session_id=session_id) \
+                        .order_by(Chat.timestamp.asc()).all()[:-1]
+                    if previous:
+                        search_system.load_history_from_db(previous)
+
+            system_output, user_output, _err = search_system.run_interactive_session(user_input)
+            initial_response = (
+                user_output if user_output and user_output.strip()
+                else "Maaf, terjadi kendala saat memproses pesan. Coba lagi."
+            )
+
+            # Append info filter aktif (hardcoded di sini, bukan dari LLM)
+            # supaya user lihat filter apa yang sedang dipakai pencariannya.
+            if has_any_filter and system_output:
+                filter_desc = _format_filter_description(filters)
+                if filter_desc:
+                    initial_response = initial_response.rstrip() + f"\n\n_Filter aktif: {filter_desc}._"
+        except Exception as e:
+            print(f"[SearchV2-stream] discuss error: {e}")
+            traceback.print_exc()
+            yield f"data: {json.dumps({'type': 'error', 'message': 'Gagal memproses pesan'}, ensure_ascii=False)}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'chat_id': None, 'needs_search': False, 'search_started': False}, ensure_ascii=False)}\n\n"
+            return
+
+        # Save assistant chat
+        chat_id = None
+        try:
+            with app.app_context():
+                assistant_chat = Chat(
+                    session_id=session_id,
+                    user_id=None,
+                    feature=FEATURE,
+                    message=None,
+                    response=initial_response,
+                    search_steps=None,
+                )
+                db.session.add(assistant_chat)
+                db.session.commit()
+                chat_id = assistant_chat.id
+        except Exception as e:
+            print(f"[SearchV2-stream] save assistant error: {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+        # Title update — tunggu title future selesai (sudah jalan paralel dengan discuss agent
+        # jadi biasanya sudah ready). Kalau belum, kasih waktu max 5 detik.
+        if title_future is not None:
+            try:
+                final_title = title_future.result(timeout=5)
+                if final_title:
+                    with app.app_context():
+                        cs = ChatSession.query.get(session_id)
+                        if cs:
+                            cs.title = final_title
+                            db.session.commit()
+                    yield f"data: {json.dumps({'type': 'title_update', 'session_id': session_id, 'title': final_title}, ensure_ascii=False)}\n\n"
+            except Exception as title_err:
+                print(f"[SearchV2-stream] title future error: {title_err}")
+
+        # Stream initial_response per-chunk (server-side artificial chunking
+        # — discuss agent v2 sudah selesai, tinggal dipotong jadi chunk
+        # supaya client bisa render typewriter).
+        text = initial_response
+        CHUNK = 24
+        for i in range(0, len(text), CHUNK):
+            piece = text[i:i + CHUNK]
+            yield f"data: {json.dumps({'type': 'chunk', 'text': piece}, ensure_ascii=False)}\n\n"
+
+        # Kick off background keyword search jika ada system_output
+        search_started = False
+        if system_output and system_output.strip() and chat_id:
+            try:
+                with app.app_context():
+                    a_chat = Chat.query.get(chat_id)
+                    if a_chat:
+                        a_chat.search_status = 'processing'
+                        db.session.commit()
+                AcademicSearchSystemV2.clear_cancel(session_id)
+                _run_keyword_search_background(
+                    app, session_id, chat_id, system_output,
+                    filters=filters if has_any_filter else None,
+                )
+                search_started = True
+            except Exception as e:
+                print(f"[SearchV2-stream] search kickoff error: {e}")
+
+        done = {
+            'type': 'done',
+            'chat_id': chat_id,
+            'needs_search': bool(system_output),
+            'search_started': search_started,
+        }
+        yield f"data: {json.dumps(done, ensure_ascii=False)}\n\n"
+
+    return Response(
+        stream_with_context(event_stream()),
+        mimetype='text/event-stream',
+        headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'},
+    )
+
+
 @bp.route('/search_process/<int:chat_id>', methods=['POST'])
 def search_process(chat_id):
     """Kick off background keyword search. Frontend polls /check_status."""
@@ -394,6 +664,7 @@ def check_status(chat_id):
             summary = []
             all_empty = False
             cancelled = False
+            final_response_steps = ''
             if chat.search_steps:
                 try:
                     parsed = json.loads(chat.search_steps)
@@ -401,14 +672,18 @@ def check_status(chat_id):
                         summary = parsed.get('summary', [])
                         all_empty = parsed.get('all_empty', False)
                         cancelled = parsed.get('cancelled', False)
+                        final_response_steps = parsed.get('final_response', '') or ''
                 except json.JSONDecodeError:
                     pass
+            # Kalau all_empty, suggestion di-save ke chat.response. Kalau tidak,
+            # ringkasan dari inject_paper_context disimpan di search_steps.final_response.
+            final_response = final_response_steps or (chat.response or '')
             result['result'] = {
                 'success': db_status == 'completed',
                 'summary': summary,
                 'all_empty': all_empty,
                 'cancelled': cancelled,
-                'final_response': chat.response or '',
+                'final_response': final_response,
                 'complete': True,
             }
 

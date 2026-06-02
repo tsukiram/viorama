@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History: {{ target_user.username }} | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/static/css/search.css">
+    <link rel="stylesheet" href="/static/css/search_v2.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary: #7C3AED;
+            --primary-soft: #A78BFA;
+            --primary-tint: #F5F3FF;
+            --primary-tint-strong: #EDE9FE;
+            --border-color: #EDE9FE;
+            --text-dark: #1F2A44;
+            --text-light: #6B7280;
+            --light: #F8F7FC;
+            --shadow-cute: 0 4px 16px -8px rgba(167,139,250,0.18);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            background: var(--light);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* TOP BAR */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            gap: 16px;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            text-decoration: none; color: var(--text-light); font-weight: 600;
+            padding: 7px 14px; border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: white; transition: all 0.2s; font-size: 13px;
+        }
+        .btn-back:hover { color: var(--primary); border-color: var(--primary-soft); }
+        .topbar-title { font-size: 16px; font-weight: 700; color: var(--text-dark); }
+        .topbar-title span { color: var(--primary); }
+        .topbar-stats { display: flex; gap: 20px; }
+        .stat-chip {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 11px; color: var(--text-light); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .stat-chip strong { font-size: 18px; color: var(--primary); font-weight: 700; line-height: 1.2; }
+
+        /* MAIN LAYOUT */
+        .layout-wrapper {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            background: var(--light);
+            padding: 24px;
+        }
+
+        .layout {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: white;
+            box-shadow: var(--shadow-cute);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid var(--border-color);
+            border-radius: 20px 0 0 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* TABS */
+        .tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1; padding: 14px 0;
+            border: none; background: none;
+            font-size: 13px; font-weight: 600;
+            color: var(--text-light); cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-count {
+            background: var(--primary-tint-strong); color: var(--primary);
+            border-radius: 50px; padding: 1px 7px; font-size: 11px; font-weight: 700;
+        }
+
+        /* SESSION LIST */
+        .session-list-wrap { flex: 1; overflow-y: auto; padding: 8px 0; }
+        .session-panel { display: none; }
+        .session-panel.active { display: block; }
+
+        .session-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px; cursor: pointer;
+            border-radius: 12px; margin: 2px 8px;
+            transition: background 0.15s;
+            font-size: 13px; color: var(--text-dark);
+        }
+        .session-item:hover { background: var(--light); }
+        .session-item.active { background: var(--primary-tint-strong); color: var(--primary); }
+        .session-item.active .session-icon { color: var(--primary); }
+        .session-icon { color: var(--text-light); font-size: 12px; flex-shrink: 0; }
+        .session-info { flex: 1; min-width: 0; }
+        .session-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .session-date { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+        .session-msg-count { font-size: 11px; color: var(--text-light); flex-shrink: 0; }
+
+        .empty-list { padding: 40px 16px; text-align: center; color: var(--text-light); font-size: 13px; }
+        .empty-list i { font-size: 32px; display: block; margin-bottom: 12px; opacity: 0.3; }
+
+        /* MAIN CHAT AREA */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* WELCOME STATE */
+        .welcome-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            gap: 12px;
+        }
+        .welcome-state i { font-size: 48px; opacity: 0.2; }
+        .welcome-state p { font-size: 14px; font-weight: 500; }
+
+        /* SESSION HEADER */
+        .chat-session-header {
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .chat-session-header h3 { font-size: 15px; font-weight: 700; }
+        .chat-session-header .meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+        .feature-pill {
+            padding: 3px 10px; border-radius: 50px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+        }
+        .pill-search { background: var(--primary-tint-strong); color: var(--primary); }
+        .pill-general { background: #e0f2fe; color: #0284c7; }
+
+        /* CHAT DISPLAY */
+        .chat-display {
+            flex: 1; overflow-y: auto;
+            padding: 24px; display: flex;
+            flex-direction: column; gap: 20px;
+        }
+
+        /* MESSAGES — sama persis dengan frontend */
+        .message { display: flex; gap: 12px; max-width: 75%; }
+        .message.is-user { align-self: flex-end; }
+        .message.is-ai { align-self: flex-start; }
+
+        .message-bubble {
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            border-radius: 20px;
+            word-break: break-word;
+        }
+        .message.is-user .message-bubble {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .message.is-ai .message-bubble {
+            background: var(--primary-tint);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 20px 20px 20px 5px;
+        }
+        .message.is-ai .message-bubble p { margin-bottom: 8px; }
+        .message.is-ai .message-bubble p:last-child { margin-bottom: 0; }
+        .message.is-ai .message-bubble ul,
+        .message.is-ai .message-bubble ol { padding-left: 20px; margin-bottom: 8px; }
+        .message.is-ai .message-bubble strong { font-weight: 700; }
+        .message-time {
+            font-size: 11px; color: var(--text-light); margin-top: 4px;
+        }
+        .message.is-user .message-time { text-align: right; }
+
+        .msg-wrap { display: flex; flex-direction: column; }
+        .msg-wrap.user { align-items: flex-end; }
+        .msg-wrap.ai { align-items: flex-start; }
+
+        /* SEARCH STEPS */
+        .search-steps { margin: 8px 0 4px 0; display: flex; flex-direction: column; gap: 4px; }
+        .step-item {
+            display: flex; align-items: flex-start; gap: 8px;
+            font-size: 12px; color: var(--text-light); padding: 4px 0;
+        }
+        .step-icon { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+        .step-keyword .step-icon { background: var(--primary-tint-strong); color: var(--primary); }
+        .step-result .step-icon { background: #dcfce7; color: #16a34a; }
+        .step-section .step-icon { background: #fef9c3; color: #ca8a04; }
+        .step-count { font-weight: 700; color: var(--text-dark); }
+        .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 50px; font-weight: 600; margin-bottom: 6px; }
+        .status-completed { background: #dcfce7; color: #16a34a; }
+        .status-processing { background: #fef9c3; color: #ca8a04; }
+        .status-error { background: #fee2e2; color: #dc2626; }
+        .status-cancelled { background: #f1f5f9; color: #64748b; }
+
+        /* SCROLLBAR */
+        .chat-display::-webkit-scrollbar { width: 4px; }
+        .chat-display::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .session-list-wrap::-webkit-scrollbar { width: 4px; }
+        .session-list-wrap::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="topbar-left">
+        <a href="{{ url_for('admin.users') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Users
+        </a>
+        <div class="topbar-title">History — <span>{{ target_user.username }}</span></div>
+    </div>
+    <div class="topbar-stats">
+        <div class="stat-chip"><strong>{{ sessions_data | length }}</strong> Sessions</div>
+        <div class="stat-chip"><strong>{{ total_messages }}</strong> Messages</div>
+        <div class="stat-chip"><strong>{{ sessions_data | selectattr('session.feature', 'equalto', 'search_v2') | list | length }}</strong> Search</div>
+        <div class="stat-chip"><strong>{{ sessions_data | selectattr('session.feature', 'equalto', 'general') | list | length }}</strong> General</div>
+    </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout-wrapper">
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('search_v2', this)">
+                <i class="fas fa-search"></i> Search
+                <span class="tab-count">{{ sessions_data | selectattr('session.feature', 'equalto', 'search_v2') | list | length }}</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('general', this)">
+                <i class="fas fa-comments"></i> General
+                <span class="tab-count">{{ sessions_data | selectattr('session.feature', 'equalto', 'general') | list | length }}</span>
+            </button>
+        </div>
+
+        <div class="session-list-wrap">
+            <!-- SEARCH SESSIONS -->
+            <div class="session-panel active" id="panel-search_v2">
+                {% set search_sessions = sessions_data | selectattr('session.feature', 'equalto', 'search_v2') | list %}
+                {% if search_sessions %}
+                    {% for item in search_sessions %}
+                    <div class="session-item" onclick="loadSession({{ item.session.id }})" id="item-{{ item.session.id }}">
+                        <i class="fas fa-search session-icon"></i>
+                        <div class="session-info">
+                            <div class="session-name">{{ item.session.title }}</div>
+                            <div class="session-date">{{ item.session.timestamp.strftime('%d %b %Y') }}</div>
+                        </div>
+                        <span class="session-msg-count">{{ item.chats | length }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-list"><i class="fas fa-search"></i>Belum ada sesi pencarian.</div>
+                {% endif %}
+            </div>
+
+            <!-- GENERAL SESSIONS -->
+            <div class="session-panel" id="panel-general">
+                {% set general_sessions = sessions_data | selectattr('session.feature', 'equalto', 'general') | list %}
+                {% if general_sessions %}
+                    {% for item in general_sessions %}
+                    <div class="session-item" onclick="loadSession({{ item.session.id }})" id="item-{{ item.session.id }}">
+                        <i class="fas fa-comment session-icon"></i>
+                        <div class="session-info">
+                            <div class="session-name">{{ item.session.title }}</div>
+                            <div class="session-date">{{ item.session.timestamp.strftime('%d %b %Y') }}</div>
+                        </div>
+                        <span class="session-msg-count">{{ item.chats | length }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-list"><i class="fas fa-comments"></i>Belum ada sesi general.</div>
+                {% endif %}
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="chat-main" id="chat-main">
+        <div class="welcome-state" id="welcome-state">
+            <i class="fas fa-comments"></i>
+            <p>Pilih sesi untuk melihat percakapan</p>
+        </div>
+    </main>
+</div>
+</div>
+
+<!-- SESSION DATA (JSON) -->
+<script>
+const sessionsData = {
+    {% for item in sessions_data %}
+    {{ item.session.id }}: {
+        id: {{ item.session.id }},
+        title: {{ item.session.title | tojson }},
+        feature: {{ item.session.feature | tojson }},
+        timestamp: {{ item.session.timestamp.strftime('%d %b %Y, %H:%M') | tojson }},
+        chats: [
+            {% for chat in item.chats %}
+            {
+                message: {{ chat.message | tojson }},
+                response: {{ chat.response | tojson }},
+                steps: {{ chat.steps | tojson }},
+                summary: {{ chat.summary | tojson }},
+                search_status: {{ chat.search_status | tojson }},
+                time: {{ chat.time | tojson }}
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+let activeSessionId = null;
+
+function switchTab(feature, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.session-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + feature).classList.add('active');
+}
+
+function loadSession(id) {
+    const data = sessionsData[id];
+    if (!data) return;
+
+    // Highlight active session
+    document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+    const item = document.getElementById('item-' + id);
+    if (item) item.classList.add('active');
+
+    activeSessionId = id;
+
+    const featurePill = data.feature === 'search'
+        ? `<span class="feature-pill pill-search"><i class="fas fa-search"></i> Search</span>`
+        : `<span class="feature-pill pill-general"><i class="fas fa-comments"></i> General</span>`;
+
+    let messagesHtml = '';
+    if (data.chats.length === 0) {
+        messagesHtml = `<div style="text-align:center; color:#94a3b8; padding:40px; font-size:14px;">Sesi ini tidak memiliki pesan.</div>`;
+    } else {
+        data.chats.forEach(chat => {
+            if (chat.message) {
+                messagesHtml += `
+                <div class="msg-wrap user">
+                    <div class="message is-user">
+                        <div class="message-bubble">${escapeHtml(chat.message)}</div>
+                    </div>
+                    <div class="message-time">${chat.time}</div>
+                </div>`;
+            }
+            if (chat.response || (chat.summary && chat.summary.length > 0)) {
+                // Render summary (keyword blocks + papers) — sama persis dengan frontend
+                let summaryHtml = '';
+                if (chat.summary && chat.summary.length > 0) {
+                    let lastSection = null;
+                    chat.summary.forEach(kr => {
+                        const { keyword, kw_type, count, results } = kr;
+                        if (kw_type !== lastSection) {
+                            lastSection = kw_type;
+                            const label = kw_type === 'utama' ? 'Kata Kunci Utama' : 'Kata Kunci Tambahan';
+                            const icon = kw_type === 'utama' ? 'fa-star' : 'fa-plus-circle';
+                            const cls = kw_type === 'tambahan' ? ' is-tambahan' : '';
+                            summaryHtml += `<div class="v2-section-header${cls}"><i class="fas ${icon}"></i><span>${label}</span></div>`;
+                        }
+                        const hasResults = count > 0;
+                        const tambahan = kw_type === 'tambahan' ? ' is-tambahan' : '';
+                        const blockId = 'kb-' + Math.random().toString(36).substr(2,6);
+                        summaryHtml += `<div class="v2-keyword-block is-done${tambahan} ${hasResults ? 'has-results' : 'no-results'}" id="${blockId}">
+                            <div class="v2-kw-summary" onclick="toggleBlock('${blockId}')">
+                                <div class="v2-kw-summary-text">`;
+                        if (hasResults) {
+                            summaryHtml += `<span class="v2-status-icon is-success"><i class="fas fa-check"></i></span>
+                                <span class="kw-quote">${escapeHtml(keyword)}</span>
+                                <span class="v2-kw-count">${count} karya tulis</span>`;
+                        } else {
+                            summaryHtml += `<span class="v2-status-icon is-empty"><i class="far fa-circle"></i></span>
+                                <span class="kw-quote">${escapeHtml(keyword)}</span>
+                                <span class="v2-kw-count is-zero">tidak ditemukan</span>`;
+                        }
+                        summaryHtml += `</div>`;
+                        if (hasResults) {
+                            summaryHtml += `<button class="v2-kw-toggle" type="button"><i class="fas fa-chevron-down chevron"></i></button>`;
+                        }
+                        summaryHtml += `</div>`;
+                        if (hasResults && Array.isArray(results) && results.length > 0) {
+                            summaryHtml += `<ul class="v2-paper-list">`;
+                            results.forEach(p => {
+                                const cite = escapeHtml(p.citation || 'Tanpa sitasi');
+                                const code = p.code || '';
+                                summaryHtml += `<li class="v2-paper-item">
+                                    <div class="v2-paper-cite">${cite}</div>
+                                    ${code ? `<a class="v2-paper-link" href="/paper/${encodeURIComponent(code)}" target="_blank"><i class="fas fa-external-link-alt"></i> Buka detail paper</a>` : ''}
+                                </li>`;
+                            });
+                            summaryHtml += `</ul>`;
+                        }
+                        summaryHtml += `</div>`;
+                    });
+                }
+
+                const responseHtml = chat.response ? `<div class="message is-ai"><div class="message-bubble">${marked.parse(chat.response)}</div></div>` : '';
+                messagesHtml += `
+                <div class="msg-wrap ai">
+                    ${summaryHtml ? `<div class="v2-search-results" style="width:100%; max-width:680px;">${summaryHtml}</div>` : ''}
+                    ${responseHtml}
+                    <div class="message-time">${chat.time}</div>
+                </div>`;
+            }
+        });
+    }
+
+    document.getElementById('chat-main').innerHTML = `
+        <div class="chat-session-header">
+            ${featurePill}
+            <div>
+                <h3>${escapeHtml(data.title)}</h3>
+                <div class="meta">${data.timestamp} · ${data.chats.length} pesan</div>
+            </div>
+        </div>
+        <div class="chat-display" id="chat-display">
+            ${messagesHtml}
+        </div>
+    `;
+
+    // Scroll to bottom
+    const display = document.getElementById('chat-display');
+    if (display) display.scrollTop = display.scrollHeight;
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toggleBlock(id) {
+    const block = document.getElementById(id);
+    if (block) block.classList.toggle('expanded');
+}
+</script>
+</body>
+</html>

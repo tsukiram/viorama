@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from app.models.models import User, ChatSession, Chat, db
 from app.gemini_client.general_knowledge import GeneralKnowledgeSystem
 from app.gemini_client.title_generator import TitleGenerator
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import pytz
 import locale
@@ -11,6 +12,17 @@ import markdown
 import traceback
 import time
 import json
+
+# Executor untuk title generation paralel (chat_stream)
+_title_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix='gen-title')
+
+
+def _generate_title_safe(user_input):
+    try:
+        return TitleGenerator.generate_title(user_input)
+    except Exception as e:
+        print(f"[STREAM-CHAT] title gen error: {e}")
+        return None
 
 bp = Blueprint('general', __name__, url_prefix='/general')
 
@@ -224,20 +236,18 @@ def chat_stream():
 
     new_session_created = False
     chat_session = None
+    title_future = None
 
     try:
         if not session_id or session_id in ('null', 'undefined'):
             new_session_created = True
-            try:
-                generated_title = TitleGenerator.generate_title(user_input)
-            except Exception as title_error:
-                print(f"[STREAM-CHAT] Title generation failed: {title_error}")
-                generated_title = "New Chat"
+            # Spawn title generation paralel — discuss agent jalan bersamaan
+            title_future = _title_executor.submit(_generate_title_safe, user_input)
 
             chat_session = ChatSession(
                 user_id=user_id,
                 feature='general',
-                title=generated_title
+                title="New Chat..."
             )
             db.session.add(chat_session)
             db.session.commit()
@@ -265,12 +275,43 @@ def chat_stream():
 
         full_response = ""
         had_error = False
+        title_emitted = False
+
+        def maybe_emit_title():
+            """Coba ambil title future tanpa blocking. Emit kalau sudah ready."""
+            nonlocal title_emitted
+            if title_emitted or title_future is None:
+                return None
+            if not title_future.done():
+                return None
+            try:
+                final_title = title_future.result(timeout=0)
+            except Exception:
+                title_emitted = True
+                return None
+            title_emitted = True
+            if not final_title:
+                return None
+            try:
+                with app.app_context():
+                    cs = ChatSession.query.get(session_id)
+                    if cs:
+                        cs.title = final_title
+                        db.session.commit()
+            except Exception as up_err:
+                print(f"[STREAM-CHAT] title update error: {up_err}")
+            return final_title
+
         try:
             general_system = GeneralKnowledgeSystem(session_id)
             for kind, payload in general_system.run_streaming_session(user_input):
                 if kind == 'chunk':
                     full_response += payload
                     yield f"data: {json.dumps({'type': 'chunk', 'text': payload}, ensure_ascii=False)}\n\n"
+                    # Setiap chunk, cek apakah title sudah siap (non-blocking)
+                    new_title = maybe_emit_title()
+                    if new_title:
+                        yield f"data: {json.dumps({'type': 'title_update', 'session_id': session_id, 'title': new_title}, ensure_ascii=False)}\n\n"
                 elif kind == 'error':
                     had_error = True
                     yield f"data: {json.dumps({'type': 'error', 'message': payload}, ensure_ascii=False)}\n\n"
@@ -281,6 +322,23 @@ def chat_stream():
             print(f"[STREAM-CHAT] Stream error: {e}")
             print(traceback.format_exc())
             yield f"data: {json.dumps({'type': 'error', 'message': 'Streaming failed'}, ensure_ascii=False)}\n\n"
+
+        # Last chance: tunggu title kalau belum sempat emit selama streaming chunk
+        if not title_emitted and title_future is not None:
+            try:
+                final_title = title_future.result(timeout=5)
+                if final_title:
+                    try:
+                        with app.app_context():
+                            cs = ChatSession.query.get(session_id)
+                            if cs:
+                                cs.title = final_title
+                                db.session.commit()
+                    except Exception as up_err:
+                        print(f"[STREAM-CHAT] title update error (late): {up_err}")
+                    yield f"data: {json.dumps({'type': 'title_update', 'session_id': session_id, 'title': final_title}, ensure_ascii=False)}\n\n"
+            except Exception as title_err:
+                print(f"[STREAM-CHAT] late title err: {title_err}")
 
         # Persist chat after stream ends (success only)
         if not had_error and full_response:

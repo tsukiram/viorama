@@ -20,8 +20,10 @@ class TitleGenerator:
                     message[:100], '...' if len(message) > 100 else '')
         
         try:
-            # Dynamic Config
-            # Dynamic Config
+            from flask import has_app_context
+            if not has_app_context():
+                return cls._fallback_title(message)
+
             from app.models.models import APIKey, AIModel, Setting
 
             key_entry = APIKey.query.filter_by(is_active=True).first()

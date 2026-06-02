@@ -6,6 +6,234 @@
  * Tema: dominan putih + aksen ungu light, minim kotak.
  */
 
+/* ===== Filter trigger inline di kanan textarea, popup expand UP ===== */
+/* .chat-input-area sudah punya id="v2-filter-bar" — pastikan relative untuk
+ * anchor popup absolute. */
+#v2-filter-bar {
+    position: relative;
+}
+
+/* Force flex order pada form supaya layout: [textarea grow][filter][send] */
+#v2-filter-bar .chat-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#v2-filter-bar #message-input {
+    flex: 1 1 auto !important;
+    order: 1;
+    min-width: 0;
+}
+
+#v2-filter-bar .v2-filter-trigger {
+    order: 2;
+    flex: 0 0 auto;
+}
+
+#v2-filter-bar #send-button {
+    order: 3;
+    flex: 0 0 auto;
+}
+
+/* Trigger default = square icon button 40x40 (compact) */
+.v2-filter-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-light);
+    font-size: 0.95rem;
+    font-weight: 500;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+/* Saat ada badge filter aktif, expand width supaya badge muat */
+.v2-filter-trigger.has-badges {
+    width: auto;
+    min-width: 40px;
+    padding: 0 10px;
+}
+
+.v2-filter-trigger:hover {
+    border-color: var(--primary-soft);
+    color: var(--primary);
+}
+
+.v2-filter-trigger.is-open {
+    background: var(--primary-tint);
+    border-color: var(--primary-soft);
+    color: var(--primary);
+}
+
+.v2-filter-trigger i {
+    font-size: 1rem;
+}
+
+/* Badge container — sembunyi kalau kosong */
+.v2-filter-badges {
+    display: none;
+    align-items: center;
+    gap: 3px;
+    max-width: 180px;
+    overflow: hidden;
+}
+
+.v2-filter-trigger.has-badges .v2-filter-badges {
+    display: inline-flex;
+}
+
+.v2-filter-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    background: var(--primary-tint-strong);
+    color: var(--primary);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* Popup — expand UP dari trigger, anchored ke kanan input area */
+.v2-filter-popup {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 16px;
+    width: min(420px, calc(100% - 32px));
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 22px -8px rgba(124, 58, 237, 0.18),
+                0 12px 40px -10px rgba(60, 60, 90, 0.1);
+    z-index: 50;
+    animation: v2-filter-pop-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Pastikan hidden bekerja meski display: lainnya */
+.v2-filter-popup[hidden] {
+    display: none !important;
+}
+
+/* Tail kecil di bawah popup (mengarah ke trigger di kanan) */
+.v2-filter-popup::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    right: 64px;
+    width: 12px;
+    height: 12px;
+    background: #ffffff;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    transform: rotate(45deg);
+}
+
+@keyframes v2-filter-pop-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.v2-filter-section {
+    margin-bottom: 12px;
+}
+
+.v2-filter-section:last-of-type { margin-bottom: 6px; }
+
+.v2-filter-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+}
+
+.v2-filter-date-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.v2-filter-date-custom input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: #ffffff;
+    color: var(--text-dark);
+}
+
+.v2-filter-date-custom input:focus {
+    outline: none;
+    border-color: var(--primary-soft);
+    box-shadow: 0 0 0 3px var(--primary-tint);
+}
+
+.v2-filter-date-custom span {
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.v2-filter-select {
+    width: 100%;
+    padding: 7px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text-dark);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.v2-filter-select:focus {
+    outline: none;
+    border-color: var(--primary-soft);
+    box-shadow: 0 0 0 3px var(--primary-tint);
+}
+
+.v2-filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.v2-filter-reset {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.v2-filter-reset:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+@media (max-width: 600px) {
+    .v2-filter-popup {
+        width: calc(100vw - 40px);
+        left: 0;
+        right: auto;
+    }
+}
+
 /* ===== Welcome banner mode cepat ===== */
 .v2-welcome .v2-badge {
     display: inline-block;
@@ -71,6 +299,18 @@
     color: var(--primary);
     font-size: 0.9rem;
     letter-spacing: 0.3px;
+    animation: v2-slide-in 0.35s ease-out both;
+}
+
+@keyframes v2-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .v2-section-header.is-tambahan {
@@ -81,13 +321,78 @@
     font-size: 0.85rem;
 }
 
-/* Tiap blok keyword - flat, minim border */
+/* Tiap blok keyword - flat, minim border. Tidak punya animation di sini supaya
+ * tidak re-trigger saat class diubah. Animasi entry dipasang lewat .v2-block-enter
+ * yang hanya ditambah sekali waktu element dibuat. */
 .v2-keyword-block {
     background: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 10px 14px;
-    transition: all 0.18s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Animasi entry — dipakai sekali saja saat element baru dibuat */
+.v2-block-enter {
+    animation: v2-block-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes v2-block-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Final summary note — sama, animation pakai class explicit */
+.v2-final-note.v2-block-enter {
+    animation: v2-block-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Loader saat summary sedang dibuat */
+.v2-summary-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+/* Bouncing dots di samping teks "Membuat ringkasan" */
+.v2-summary-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.v2-summary-dots span {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    opacity: 0.6;
+    animation: v2-summary-bounce 1.2s infinite ease-in-out;
+}
+
+.v2-summary-dots span:nth-child(1) { animation-delay: 0s; }
+.v2-summary-dots span:nth-child(2) { animation-delay: 0.18s; }
+.v2-summary-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes v2-summary-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Saat sedang generating, hilangkan jarak top yang biasanya untuk margin teks
+ * supaya loader compact */
+.v2-final-note.is-generating {
+    padding-top: 4px;
 }
 
 .v2-keyword-block.is-loading {
@@ -174,16 +479,39 @@
     display: none;
 }
 
-/* List paper di dalam blok (collapsed by default) */
+/* List paper di dalam blok (collapsed by default).
+ * Dibatasi max-height + scroll internal supaya kalau hasil banyak
+ * tidak meluber panjang ke bawah. */
 .v2-paper-list {
     list-style: none;
-    padding: 0;
+    padding: 10px 6px 0 0;
     margin: 10px 0 0;
     display: none;
     flex-direction: column;
     gap: 6px;
     border-top: 1px dashed var(--border-color);
-    padding-top: 10px;
+    max-height: 480px;
+    overflow-y: auto;
+    /* Scrollbar minimalis ungu */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-soft) transparent;
+}
+
+.v2-paper-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.v2-paper-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.v2-paper-list::-webkit-scrollbar-thumb {
+    background: var(--primary-soft);
+    border-radius: 3px;
+}
+
+.v2-paper-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 .v2-keyword-block.expanded .v2-paper-list {
@@ -243,30 +571,189 @@
     color: var(--primary);
 }
 
-/* ===== Cancel button ===== */
-.v2-cancel-btn {
+/* ===== Final summary note (setelah pencarian selesai) ===== */
+/* Polos — tidak dibungkus kotak. Cuma teks dengan jarak atas.
+ * Warna teks sama untuk hasil sukses maupun kosong (isi teks sudah jelas). */
+.v2-final-note {
+    margin-top: 16px;
+    padding: 0;
     background: transparent;
-    color: var(--danger);
-    border: 1px solid #FECACA;
-    border-radius: 8px;
-    padding: 4px 12px;
-    font-size: 0.82rem;
+    border: none;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.v2-final-note p {
+    margin: 0 0 8px 0;
+}
+
+.v2-final-note p:last-child {
+    margin-bottom: 0;
+}
+
+.v2-final-note strong {
+    color: var(--primary);
+}
+
+/* ===== Status bar pencarian (atas, dengan tombol Berhenti) ===== */
+.v2-search-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    background: var(--primary-tint);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    margin: 6px 0 14px;
+    font-size: 0.86rem;
+    color: var(--primary);
+    animation: v2-slide-in 0.3s ease-out both;
+}
+
+.v2-search-status-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-weight: 500;
-    cursor: pointer;
+}
+
+.v2-search-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+    animation: v2-pulse-soft 1.4s infinite ease-in-out;
+}
+
+@keyframes v2-pulse-soft {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 var(--primary-soft);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+        box-shadow: 0 0 0 6px transparent;
+    }
+}
+
+/* Tombol Berhenti — minimalis, pill */
+.v2-cancel-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 999px;
     transition: all 0.15s;
-    margin-left: auto;
 }
 
 .v2-cancel-btn:hover {
-    background: #FEF2F2;
+    color: #C62828;
+    background: rgba(198, 40, 40, 0.08);
 }
 
 .v2-cancel-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* ===== Custom CSS spinner — simetris (pakai border ring) ===== */
+.v2-spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 2px solid var(--primary-tint-strong);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: v2-spin 0.75s linear infinite;
+    flex-shrink: 0;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+@keyframes v2-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== Status icon di tiap keyword block ===== */
+.v2-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    margin-right: 4px;
+    color: var(--primary);
+    font-size: 0.85em;
+}
+
+.v2-status-icon.is-success {
+    color: var(--primary);
+}
+
+.v2-status-icon.is-empty {
+    color: #BDBDBD;
+}
+
+.v2-kw-label {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.92em;
+}
+
+.v2-kw-count {
+    margin-left: 8px;
+    color: var(--text-secondary);
+    font-size: 0.88em;
+    font-weight: 500;
+}
+
+.v2-kw-count.is-zero {
+    color: #9E9E9E;
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* ===== State: searching (sebelum hasil) — block putih biasa ===== */
+/* Tidak ada animasi background/opacity supaya tidak terkesan delay.
+ * Indikator loading cukup dari spinner ungu di samping teks. */
+.v2-keyword-block.is-searching .v2-kw-summary-text {
+    color: var(--text-secondary);
+}
+
+.v2-keyword-block.is-searching .v2-kw-label {
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* ===== State: done dengan results ===== */
+.v2-keyword-block.is-done.has-results {
+    border-left: 3px solid var(--primary);
+}
+
+.v2-keyword-block.is-done.is-tambahan.has-results {
+    border-left-color: var(--primary-soft);
+}
+
+.v2-keyword-block.is-done.no-results {
+    border-left: 3px solid #E5E7EB;
+    opacity: 0.85;
+}
+
+/* Toggle hanya icon chevron, tanpa teks */
+.v2-keyword-block .v2-kw-toggle {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    padding: 4px 8px;
 }
 
 /* Responsive tweaks */

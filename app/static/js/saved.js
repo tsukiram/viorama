@@ -8,21 +8,19 @@ let paperCodeToDelete = null;
 function openModal() {
     const modalOverlay = document.getElementById('delete-modal-overlay');
     if (modalOverlay) {
-        modalOverlay.style.display = 'flex';
-        console.log('Modal opened for paper:', paperCodeToDelete);
-    } else {
-        console.error('Modal overlay not found!');
+        modalOverlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
     }
 }
 
 function closeModal() {
     const modalOverlay = document.getElementById('delete-modal-overlay');
     if (modalOverlay) {
-        modalOverlay.style.display = 'none';
+        modalOverlay.classList.remove('visible');
+        document.body.style.overflow = '';
     }
     paperIdToDelete = null;
     paperCodeToDelete = null;
-    console.log('Modal closed');
 }
 
 async function deletePaper() {

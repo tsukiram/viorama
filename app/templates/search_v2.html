@@ -17,7 +17,7 @@
     <!-- === SIDEBAR === -->
     <aside class="chat-sidebar" id="chat-sidebar">
         <div class="sidebar-header">
-            <h3>History v2</h3>
+            <h3>History</h3>
             <button id="minimize-sidebar-btn" class="sidebar-toggle-btn" title="Minimize Sidebar">
                 <i class="fas fa-angle-left"></i>
             </button>
@@ -80,9 +80,8 @@
         <div class="welcome-banner neo-card v2-welcome">
             <div class="welcome-text">
                 <h1>Halo, {{ user.username }}!</h1>
-                <p><span class="v2-badge">Mode Cepat</span> Pencarian paper kilat 📚</p>
-                <p>Cukup ketik topik yang Anda cari, sistem akan langsung generate beberapa kata kunci dan
-                    menampilkan hasilnya dari Digilib UIN Sunan Kalijaga.</p>
+                <p>Pencarian paper 📚</p>
+                <p>Cukup ketik topik yang Anda cari, sistem akan langsung membantumu mencari paper yang relevan.</p>
             </div>
             <div class="welcome-illustration">
                 <img src="{{ url_for('static', filename='images/search_illustration.webp') }}"
@@ -109,11 +108,11 @@
                     <span class="card-subtitle">Tema populer</span>
                 </div>
             </div>
-            <div class="suggestion-card neo-card" data-prompt="Skripsi tentang analisis sentimen Twitter">
-                <div class="card-icon-wrapper"><i class="fas fa-comments"></i></div>
+            <div class="suggestion-card neo-card" data-prompt="Skripsi tentang basis data">
+                <div class="card-icon-wrapper"><i class="fas fa-database"></i></div>
                 <div>
-                    <p class="card-title">Analisis Sentimen</p>
-                    <span class="card-subtitle">NLP / Text Mining</span>
+                    <p class="card-title">Basis Data</p>
+                    <span class="card-subtitle">Database & SI</span>
                 </div>
             </div>
             <div class="suggestion-card neo-card" data-prompt="Thesis tentang fiqih kontemporer">
@@ -149,13 +148,57 @@
             </div>
         </div>
         {% endif %}
-        <div class="chat-input-area neo-card">
+        <div class="chat-input-area neo-card" id="v2-filter-bar">
             <form id="chat-form" class="chat-form">
                 <textarea id="message-input" placeholder="Ketik topik paper yang Anda cari (mode cepat)..." rows="1"></textarea>
+
+                <!-- Filter trigger inline (di samping kanan textarea, sebelum tombol send) -->
+                <button type="button" class="v2-filter-trigger" id="v2-filter-trigger" aria-expanded="false" title="Filter pencarian">
+                    <i class="fas fa-sliders-h"></i>
+                    <span class="v2-filter-badges" id="v2-filter-badges"></span>
+                </button>
+
                 <button id="send-button" type="submit" class="send-btn" title="Send Message">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </form>
+
+            <!-- Popup expand ke atas dari trigger -->
+            <div class="v2-filter-popup" id="v2-filter-popup" hidden>
+                <div class="v2-filter-section">
+                    <label class="v2-filter-label">Tahun</label>
+                    <div class="v2-filter-date-custom">
+                        <input type="number" id="v2-date-from" min="1990" max="2030" placeholder="Dari">
+                        <span>—</span>
+                        <input type="number" id="v2-date-to" min="1990" max="2030" placeholder="Sampai">
+                    </div>
+                </div>
+
+                <div class="v2-filter-section">
+                    <label class="v2-filter-label" for="v2-filter-type">Tipe Karya</label>
+                    <select id="v2-filter-type" class="v2-filter-select">
+                        <option value="">Semua tipe</option>
+                        <option value="article">Article</option>
+                        <option value="book_section">Book Section</option>
+                        <option value="monograph">Monograph</option>
+                        <option value="conference_item">Conference or Workshop Item</option>
+                        <option value="book">Book</option>
+                        <option value="thesis">Thesis</option>
+                        <option value="patent">Patent</option>
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                        <option value="experiment">Experiment</option>
+                        <option value="teaching_resource">Teaching Resource</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="v2-filter-actions">
+                    <button type="button" class="v2-filter-reset" id="v2-filter-reset">Reset</button>
+                </div>
+            </div>
+
             <div id="processing-banner" class="v2-processing-banner" style="display:none;">
                 <i class="fas fa-spinner fa-spin"></i>
                 <span>Sedang mencari... mohon tunggu hingga proses selesai.</span>

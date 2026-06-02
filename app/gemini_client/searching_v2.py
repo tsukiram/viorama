@@ -13,8 +13,13 @@ from bs4 import BeautifulSoup
 import urllib.parse
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from google.genai import types
+
+# Max keyword yang dicari paralel dalam 1 section (utama / tambahan).
+# 4 = balance antara speed-up dan tidak terlalu agresif ke Digilib.
+KEYWORD_PARALLEL_WORKERS = 4
 
 
 class AcademicSearchSystemV2:
@@ -23,6 +28,7 @@ class AcademicSearchSystemV2:
     _cancellation_flags = {}
 
     BASE_URL = "https://digilib.uin-suka.ac.id/cgi/search/archive/simple"
+    ADV_URL  = "https://digilib.uin-suka.ac.id/cgi/search/archive/advanced"
 
     # ---------------- Helpers ----------------
     @staticmethod
@@ -154,13 +160,66 @@ class AcademicSearchSystemV2:
             self._sessions[self.session_id]['discuss_history'] = self.discuss_history
 
     # ---------------- Repository search helpers ----------------
-    def search_repository(self, query, max_results=None):
-        """Fetch all matching paper links from Digilib for `query`.
+    @staticmethod
+    def _build_advanced_url(query, date_from=None, date_to=None, paper_type=None):
+        """Konstruk URL advanced search Digilib (eprints) dengan optional filters.
 
-        max_results=None means no cap (ambil semua hasil dari halaman pertama).
+        - query        : keyword (mapped ke `keywords=`)
+        - date_from/to : YYYY-MM-DD; kalau salah satu/keduanya ada, filter date aktif
+        - paper_type   : eprints type code (article, book_section, monograph, conference_item,
+                         book, thesis, patent, artefact, exhibition, composition, performance,
+                         image, video, audio, dataset, experiment, teaching_resource, other)
         """
-        encoded = urllib.parse.quote(query)
-        url = f"{self.BASE_URL}?screen=Search&dataset=archive&order=&q={encoded}&_action_search=Search"
+        params = [
+            ('screen', 'Search'),
+            ('dataset', 'archive'),
+            ('_action_search', 'Search'),
+            ('documents_merge', 'ALL'), ('documents', ''),
+            ('title_merge', 'ALL'),     ('title', query or ''),
+            ('creators_name_merge', 'ALL'), ('creators_name', ''),
+            ('note_merge', 'ALL'),      ('note', ''),
+            ('userid', ''),
+            ('abstract_merge', 'ALL'),  ('abstract', ''),
+        ]
+
+        if date_from or date_to:
+            params.append(('date', f'{date_from or ""}-{date_to or ""}'))
+        else:
+            params.append(('date', ''))
+
+        params.extend([
+            ('keywords_merge', 'ALL'),
+            ('keywords', ''),
+            ('subjects_merge', 'ANY'),
+            ('editors_name_merge', 'ALL'), ('editors_name', ''),
+            ('refereed', 'EITHER'),
+            ('publication_merge', 'ALL'), ('publication', ''),
+            ('satisfyall', 'ALL'),
+            ('order', '-date/creators_name/title'),
+        ])
+
+        if paper_type:
+            params.append(('type', paper_type.lower().strip()))
+
+        return AcademicSearchSystemV2.ADV_URL + '?' + urllib.parse.urlencode(params)
+
+    def search_repository(self, query, max_results=None, filters=None):
+        """Fetch matching paper links dari Digilib.
+
+        Selalu pakai advanced URL (`keywords=`) — lebih akurat match ke
+        Uncontrolled Keywords paper dibanding simple `q=`. Filter optional:
+        dict dengan keys date_from, date_to, paper_type.
+        """
+        filters = filters or {}
+        # Backward-compat: terima 'thesis_type' lama
+        paper_type = filters.get('paper_type') or filters.get('thesis_type')
+        url = self._build_advanced_url(
+            query,
+            date_from=filters.get('date_from'),
+            date_to=filters.get('date_to'),
+            paper_type=paper_type,
+        )
+
         try:
             r = requests.get(url, timeout=10)
             r.raise_for_status()
@@ -209,8 +268,8 @@ class AcademicSearchSystemV2:
                 continue
         return out
 
-    def search_papers(self, query):
-        results = self.search_repository(query)
+    def search_papers(self, query, filters=None):
+        results = self.search_repository(query, filters=filters)
         if not results:
             return []
         return self.fetch_metadata(results)
@@ -268,9 +327,7 @@ class AcademicSearchSystemV2:
                 elif role == "keywords_tambahan":
                     tambahan = cleaned
 
-            # Cap counts (defensive — prompt sudah membatasi).
-            utama = utama[:3]
-            tambahan = tambahan[:3]
+            # Tidak ada cap jumlah — biarkan Gemini menentukan sesuai relevansi.
 
             # Dedup tambahan vs utama (case-insensitive).
             utama_lc = {k.lower() for k in utama}
@@ -343,7 +400,7 @@ class AcademicSearchSystemV2:
         return "", f"An error occurred: {last_err}", last_err
 
     # ---------------- Search flow (generator) ----------------
-    def process_keyword_search(self, user_description, chat_id=None, app_context=None):
+    def process_keyword_search(self, user_description, chat_id=None, app_context=None, filters=None):
         """Generator: ask search agent for keywords, then iterate over each keyword.
 
         Yields events:
@@ -411,27 +468,46 @@ class AcademicSearchSystemV2:
 
                 yield {"section": section_name}
 
-                for kw in kw_list:
-                    if AcademicSearchSystemV2.is_cancelled(self.session_id):
-                        yield {"error": "Search cancelled by user"}
-                        return
+                # Paralelkan keyword search dalam 1 section, TAPI yield hasil
+                # mengikuti urutan input (bukan urutan selesai). Trade-off:
+                # - Kalau kw[0] lambat, kita harus tunggu sampai dia selesai sebelum yield kw[1]
+                #   walau kw[1] sudah selesai duluan.
+                # - Manfaat: total waktu tetap = max(semua search), dan UI urut.
+                workers = min(KEYWORD_PARALLEL_WORKERS, len(kw_list))
+                with ThreadPoolExecutor(max_workers=workers, thread_name_prefix='kw-search') as executor:
+                    futures = [executor.submit(self.search_papers, kw, filters) for kw in kw_list]
 
-                    results = self.search_papers(kw)
-                    if results:
-                        had_any_result = True
+                    for kw, future in zip(kw_list, futures):
+                        if AcademicSearchSystemV2.is_cancelled(self.session_id):
+                            for f in futures:
+                                f.cancel()
+                            yield {"error": "Search cancelled by user"}
+                            return
 
-                    summary.append({
-                        "keyword": kw,
-                        "kw_type": section_name,
-                        "count": len(results),
-                        "results": results,
-                    })
-                    yield {"keyword_result": {
-                        "keyword": kw,
-                        "kw_type": section_name,
-                        "count": len(results),
-                        "results": results,
-                    }}
+                        # Emit keyword_start dulu — frontend tampilkan "sedang mencari ..."
+                        yield {"keyword_start": {"keyword": kw, "kw_type": section_name}}
+
+                        try:
+                            results = future.result()
+                        except Exception as kw_err:
+                            print(f"[SearchV2] keyword '{kw}' search error: {kw_err}")
+                            results = []
+
+                        if results:
+                            had_any_result = True
+
+                        summary.append({
+                            "keyword": kw,
+                            "kw_type": section_name,
+                            "count": len(results),
+                            "results": results,
+                        })
+                        yield {"keyword_result": {
+                            "keyword": kw,
+                            "kw_type": section_name,
+                            "count": len(results),
+                            "results": results,
+                        }}
 
             yield {
                 "complete": True,
@@ -454,11 +530,13 @@ class AcademicSearchSystemV2:
         - Berapa hasil tiap keyword (termasuk yang 0)
         - Daftar lengkap paper unik yang ditemukan beserta keyword penemunya
 
-        Tujuannya supaya pertanyaan lanjutan user dijawab dengan konteks penuh.
-        Response discuss agent dibuang — frontend sudah render hasil.
+        Tujuannya supaya pertanyaan lanjutan user dijawab dengan konteks penuh,
+        DAN agent menghasilkan ringkasan teks yang ditampilkan ke user.
+
+        Returns: user_output string (ringkasan untuk user) atau None kalau gagal.
         """
         if not summary:
-            return
+            return None
 
         # Build keyword history (semua keyword, termasuk 0 hasil)
         keyword_history = []
@@ -537,8 +615,17 @@ class AcademicSearchSystemV2:
                         )
             except Exception as log_err:
                 print(f"[SearchV2] inject usage log error: {log_err}")
+
+            # Parse response untuk ambil user_output (ringkasan ke user).
+            try:
+                user_output, _system_output, _err = self.process_discuss_response(response.text or '')
+                return (user_output or '').strip() or None
+            except Exception as parse_err:
+                print(f"[SearchV2] inject parse error: {parse_err}")
+                return None
         except Exception as e:
             print(f"[SearchV2] inject_paper_context error: {e}")
+            return None
 
     def request_empty_suggestion(self, summary):
         """Ask discuss agent for fallback suggestion when ALL keywords return 0 results.

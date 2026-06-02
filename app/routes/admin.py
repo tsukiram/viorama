@@ -757,6 +757,77 @@ def delete_user():
 
 
 
+@bp.route('/user/<int:target_user_id>/history')
+def user_history(target_user_id):
+    if not is_admin():
+        flash('Access denied.', 'error')
+        return redirect(url_for('home.index'))
+
+    user = User.query.get(session['user_id'])
+    target_user = User.query.get_or_404(target_user_id)
+
+    from app.models.models import ChatSession, Chat
+    from sqlalchemy import desc
+
+    sessions = ChatSession.query\
+        .filter_by(user_id=target_user_id)\
+        .order_by(desc(ChatSession.timestamp))\
+        .all()
+
+    import json as _json
+    from app.models.models import SearchProgress
+
+    sessions_data = []
+    for s in sessions:
+        chats = Chat.query\
+            .filter_by(session_id=s.id)\
+            .order_by(Chat.timestamp)\
+            .all()
+
+        chats_data = []
+        for c in chats:
+            steps = []
+            if s.feature == 'search_v2' and c.message is None:
+                raw_steps = SearchProgress.query\
+                    .filter_by(chat_id=c.id)\
+                    .order_by(SearchProgress.step_number)\
+                    .all()
+                for sp in raw_steps:
+                    try:
+                        steps.append(_json.loads(sp.message))
+                    except Exception:
+                        steps.append({'type': 'text', 'msg': sp.message})
+
+            final_response = c.response or ''
+            summary = []
+            if s.feature == 'search_v2' and c.search_steps:
+                try:
+                    parsed = _json.loads(c.search_steps)
+                    final_response = parsed.get('final_response') or final_response
+                    summary = parsed.get('summary') or []
+                except Exception:
+                    pass
+
+            chats_data.append({
+                'message': c.message or '',
+                'response': final_response,
+                'steps': steps,
+                'summary': summary,
+                'search_status': c.search_status,
+                'time': c.timestamp.strftime('%H:%M'),
+            })
+
+        sessions_data.append({'session': s, 'chats': chats_data})
+
+    total_messages = sum(len(item['chats']) for item in sessions_data)
+
+    return render_template('admin/user_history.html',
+                           user=user,
+                           target_user=target_user,
+                           sessions_data=sessions_data,
+                           total_messages=total_messages)
+
+
 @bp.route('/logs')
 def logs():
     if not is_admin():

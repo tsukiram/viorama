@@ -2,24 +2,28 @@
 
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify
 from app.models.models import User, SavedPaper
-from app import db  # <-- TAMBAHKAN IMPORT INI
+from app import db
 from sqlalchemy import desc
+import time
 
 bp = Blueprint('saved', __name__, url_prefix='/saved')
+
+@bp.context_processor
+def inject_cache_buster():
+    return {'cache_buster': int(time.time())}
 
 @bp.route('/')
 def index():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-    
+
     user = User.query.get(session['user_id'])
     if user is None:
         session.clear()
         return redirect(url_for('auth.login'))
-    
-    # Ambil semua paper, diurutkan dari yang terbaru disimpan
+
     saved_papers = SavedPaper.query.filter_by(user_id=user.id).order_by(desc(SavedPaper.id)).all()
-    
+
     return render_template('saved.html', user=user, saved_papers=saved_papers)
 
 # === ENDPOINT BARU UNTUK MENGHAPUS PAPER ===
