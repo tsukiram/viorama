@@ -1,21 +1,104 @@
 # White Box Testing — Viorama.site
 
-Pengujian White Box Testing dilakukan dengan metode **Unit Testing**, yaitu menguji setiap fungsi/modul inti aplikasi secara individual untuk memvalidasi bahwa logika internal pada setiap unit berjalan secara akurat sesuai dengan yang diharapkan.
+Pengujian White Box Testing dilaksanakan menggunakan metode Unit Testing terhadap enam modul utama sistem. Setiap fungsi inti pada masing-masing modul diuji secara independen dengan menyusun skenario test case berdasarkan kelas masukan valid dan tidak valid, kemudian membandingkan keluaran aktual dengan keluaran yang diharapkan. Total terdapat 14 skenario test case yang dieksekusi dalam pengujian White Box Testing ini.
 
 ---
 
-## 1. Unit: `login()` — `/app/routes/auth.py`
+## Tabel 1 — Hasil Pengujian Discuss Agent Module
 
-Fungsi yang menangani autentikasi pengguna. Menerima username dan password, memverifikasi ke database, dan menentukan akses pengguna.
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 1 | Discuss Agent | `_initialize_clients()` | API key valid | Klien Discuss Agent dan Search Agent berhasil diinisiasi | Kedua klien berhasil diinisiasi tanpa error | Valid |
+| 2 | Discuss Agent | `run_interactive_session()` | Pertanyaan pengguna tentang topik KTI | Dialog diproses, user intent teridentifikasi, respons dikirim ke Search Agent | Dialog berjalan, intent terdeteksi dan diteruskan dengan benar | Valid |
 
 ```python
-@bp.route('/login', methods=['GET', 'POST'])
+# app/gemini_client/searching_v2.py
+
+def _initialize_clients(self):
+    self.api_key = self._get_active_api_key()
+    if not self.api_key:
+        return False
+    self.discuss_client = genai.Client(api_key=self.api_key)
+    self.search_client  = genai.Client(api_key=self.api_key)
+    return True
+
+def run_interactive_session(self, user_input):
+    # Proses input melalui discuss agent, identifikasi intent pencarian
+    response = self.discuss_agent.send_message(user_input)
+    system_output, user_output = self.process_discuss_response(response.text)
+    return system_output, user_output, None
+```
+
+---
+
+## Tabel 2 — Hasil Pengujian Search Agent Module
+
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 3 | Search Agent | `search_repository()` | Query kata kunci valid | Daftar hasil pencarian dari repositori Digilib dikembalikan | Hasil pencarian berhasil diambil dari Digilib | Valid |
+| 4 | Search Agent | `search_papers()` | Deskripsi topik pencarian valid | Daftar paper relevan beserta metadata dikembalikan | Paper relevan berhasil ditemukan dan dikembalikan | Valid |
+| 5 | Search Agent | `process_keyword_search()` | Deskripsi pencarian dan chat_id valid | Keyword diproses, hasil pencarian di-inject ke konteks respons | Proses pencarian berjalan, hasil tersimpan ke database | Valid |
+
+```python
+# app/gemini_client/searching_v2.py
+
+def search_repository(self, query, max_results=None, filters=None):
+    url = self._build_advanced_url(query, **filters or {})
+    response = requests.get(url, timeout=15)
+    results = self.extract_metadata(response.text)
+    return results[:max_results] if max_results else results
+
+def search_papers(self, query, filters=None):
+    results = self.search_repository(query, filters=filters)
+    return self.fetch_metadata(results)
+
+def process_keyword_search(self, user_description, chat_id=None, app_context=None, filters=None):
+    # Parsing keyword dari output discuss agent
+    # Eksekusi pencarian untuk setiap keyword
+    # Inject hasil ke konteks untuk respons final
+    ...
+```
+
+---
+
+## Tabel 3 — Hasil Pengujian General Agent Module
+
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 6 | General Agent | `_initialize_client()` | API key valid | Klien General Agent berhasil diinisiasi | Klien berhasil diinisiasi tanpa error | Valid |
+| 7 | General Agent | `run_interactive_session()` | Pertanyaan tentang layanan perpustakaan | Respons berisi informasi layanan perpustakaan yang relevan | Jawaban sesuai konteks pertanyaan layanan perpustakaan | Valid |
+
+```python
+# app/gemini_client/general_knowledge.py
+
+def _initialize_client(self):
+    self.api_key = self._get_active_api_key()
+    if not self.api_key:
+        return False
+    self.client = genai.Client(api_key=self.api_key)
+    return True
+
+def run_interactive_session(self, user_input):
+    response = self.agent.send_message(user_input)
+    return response.text
+```
+
+---
+
+## Tabel 4 — Hasil Pengujian Authentication Module
+
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 8 | Authentication | `login()` | Username dan password valid | Session user_id tersimpan, redirect ke halaman beranda | Session tersimpan, pengguna diarahkan ke beranda | Valid |
+| 9 | Authentication | `login()` | Username atau password tidak valid | Flash error "Username atau password salah", redirect ke halaman login | Pesan error ditampilkan, pengguna tidak masuk | Valid |
+| 10 | Authentication | `register()` | Data registrasi lengkap dan valid | Akun baru tersimpan di database, redirect ke halaman login | Akun berhasil dibuat, pengguna diarahkan ke login | Valid |
+
+```python
+# app/routes/auth.py
+
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('home.home'))
@@ -23,218 +106,91 @@ def login():
             flash('Username atau password salah.', 'danger')
             return redirect(url_for('auth.login'))
 
-    return render_template('login.html')
-```
-
-| No | Input | Output yang Diharapkan | Hasil | Status |
-|----|-------|----------------------|-------|--------|
-| 1 | Method GET | Halaman login ditampilkan (HTTP 200) | Sesuai | ✅ Pass |
-| 2 | POST: username valid, password benar | Redirect ke beranda, session `user_id` tersimpan | Sesuai | ✅ Pass |
-| 3 | POST: username tidak terdaftar | Flash error "Username atau password salah", redirect ke halaman login | Sesuai | ✅ Pass |
-| 4 | POST: username valid, password salah | Flash error "Username atau password salah", redirect ke halaman login | Sesuai | ✅ Pass |
-
----
-
-## 2. Unit: `register()` — `/app/routes/auth.py`
-
-Fungsi yang menangani pendaftaran akun pengguna baru. Memvalidasi input dan menyimpan akun baru ke database.
-
-```python
-@bp.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
+    error = None
+    if not username or not password or not confirm_password:
+        error = 'Semua field wajib diisi.'
+    elif len(password) < 8:
+        error = 'Password minimal 8 karakter.'
+    elif password != confirm_password:
+        error = 'Password tidak cocok.'
+    elif User.query.filter_by(username=username).first():
+        error = f"Username '{username}' sudah digunakan."
+    if error:
+        flash(error, 'danger')
+        return render_template('register.html')
+    # Simpan akun baru
+    ...
+```
 
-        error = None
-        if not username or not password or not confirm_password:
-            error = 'Semua field wajib diisi.'
-        elif len(password) < 8:
-            error = 'Password minimal 8 karakter.'
-        elif password != confirm_password:
-            error = 'Password tidak cocok.'
-        elif User.query.filter_by(username=username).first():
-            error = f"Username '{username}' sudah digunakan."
+---
 
-        if error:
-            flash(error, 'danger')
-            return render_template('register.html')
+## Tabel 5 — Hasil Pengujian Saved Paper Module
 
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, password=hashed_password)
-        db.session.add(new_user)
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 11 | Saved Paper | `index()` | User login, terdapat paper yang telah disimpan | Halaman daftar paper tersimpan ditampilkan beserta metadata | Daftar paper tersimpan berhasil ditampilkan | Valid |
+| 12 | Saved Paper | `remove_paper()` | Kode eprint paper valid dan milik user | Paper dihapus dari daftar tersimpan, redirect ke halaman saved | Paper berhasil dihapus dari database | Valid |
+
+```python
+# app/routes/saved.py
+
+def index():
+    user = User.query.get(session['user_id'])
+    saved_papers = SavedPaper.query.filter_by(user_id=user.id).all()
+    return render_template('saved.html', papers=saved_papers)
+
+def remove_paper(eprint_code):
+    paper = SavedPaper.query.filter_by(
+        user_id=session['user_id'], eprint_code=eprint_code).first()
+    if paper:
+        db.session.delete(paper)
         db.session.commit()
-        flash('Akun berhasil dibuat! Silakan masuk.', 'success')
-        return redirect(url_for('auth.login'))
-
-    return render_template('register.html')
+    return redirect(url_for('saved.index'))
 ```
-
-| No | Input | Output yang Diharapkan | Hasil | Status |
-|----|-------|----------------------|-------|--------|
-| 1 | Method GET | Halaman registrasi ditampilkan (HTTP 200) | Sesuai | ✅ Pass |
-| 2 | POST: semua field kosong | Flash error "Semua field wajib diisi" | Sesuai | ✅ Pass |
-| 3 | POST: password kurang dari 8 karakter | Flash error "Password minimal 8 karakter" | Sesuai | ✅ Pass |
-| 4 | POST: password tidak sama dengan konfirmasi | Flash error "Password tidak cocok" | Sesuai | ✅ Pass |
-| 5 | POST: username sudah digunakan | Flash error "Username sudah digunakan" | Sesuai | ✅ Pass |
-| 6 | POST: semua input valid dan unik | Akun berhasil dibuat, redirect ke halaman login dengan pesan sukses | Sesuai | ✅ Pass |
 
 ---
 
-## 3. Unit: `chat()` — `/app/routes/search_v2.py`
+## Tabel 6 — Hasil Pengujian Paper Extraction Module
 
-Fungsi utama pencarian paper. Menerima pesan pengguna, memproses melalui discuss agent, dan memulai proses pencarian di background.
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
+|----|-------|--------|-------------|----------------------|---------------|--------|
+| 13 | Paper Extraction | `extract_metadata()` | HTML halaman paper valid dari repositori Digilib | Metadata judul, abstrak, tahun, dan kode eprint berhasil diekstrak | Metadata paper berhasil diekstrak sesuai struktur HTML | Valid |
+| 14 | Paper Extraction | `fetch_metadata()` | Daftar URL hasil pencarian valid | Metadata lengkap untuk setiap paper dalam daftar dikembalikan | Metadata seluruh paper berhasil diambil | Valid |
 
 ```python
-@bp.route('/chat', methods=['POST'])
-def chat():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
+# app/gemini_client/searching_v2.py
 
-    data = request.json or {}
-    user_input = data.get('message')
-    session_id = data.get('session_id')
+def extract_metadata(self, html):
+    soup = BeautifulSoup(html, 'html.parser')
+    results = []
+    for item in soup.find_all('tr', class_='ep_search_result'):
+        title = item.find('a').get_text(strip=True)
+        link  = item.find('a')['href']
+        code  = link.split('/')[-1]
+        results.append({'title': title, 'link': link, 'code': code})
+    return results
 
-    if not user_input:
-        return jsonify({'error': 'No message provided'}), 400
-
-    if not session_id or session_id in ('null', 'undefined'):
-        chat_session = ChatSession(user_id=session['user_id'], feature=FEATURE, title=title)
-        db.session.add(chat_session)
-        db.session.flush()
-        session_id = chat_session.id
-    else:
-        chat_session = ChatSession.query.filter_by(
-            id=session_id, user_id=session['user_id']).first()
-        if not chat_session or chat_session.feature != FEATURE:
-            return jsonify({'error': 'Invalid session ID'}), 404
-
-    system_output, user_output, _err = search_system.run_interactive_session(user_input)
-
-    if system_output and system_output.strip():
-        _run_keyword_search_background(current_app._get_current_object(),
-                                       session_id, assistant_chat.id, system_output)
-        search_started = True
-    else:
-        search_started = False
-
-    return jsonify({'initial_response': initial_response,
-                    'search_started': search_started, ...})
+def fetch_metadata(self, search_results):
+    metadata_list = []
+    for result in search_results:
+        meta = self._fetch_single_metadata(result['link'])
+        metadata_list.append(meta)
+    return metadata_list
 ```
-
-| No | Input | Output yang Diharapkan | Hasil | Status |
-|----|-------|----------------------|-------|--------|
-| 1 | Request tanpa sesi login | Response JSON error "Unauthorized" (HTTP 401) | Sesuai | ✅ Pass |
-| 2 | POST login + message kosong | Response JSON error "No message provided" (HTTP 400) | Sesuai | ✅ Pass |
-| 3 | POST login + pesan pertama (sesi baru) | Sesi baru dibuat, `new_session_id` tersedia di response | Sesuai | ✅ Pass |
-| 4 | POST login + session_id tidak valid | Response JSON error "Invalid session ID" (HTTP 404) | Sesuai | ✅ Pass |
-| 5 | POST login + query pencarian paper | Response berisi `initial_response`, background search berjalan (`search_started: true`) | Sesuai | ✅ Pass |
-| 6 | POST login + percakapan umum | Response berisi jawaban teks, tidak ada background search (`search_started: false`) | Sesuai | ✅ Pass |
 
 ---
 
-## 4. Unit: `check_status()` — `/app/routes/search_v2.py`
+## Ringkasan Hasil Pengujian White Box Testing
 
-Fungsi polling status pencarian. Digunakan frontend untuk mengecek apakah proses pencarian sudah selesai dan mengambil hasilnya.
+| No | Modul | Jumlah Fungsi Diuji | Jumlah Test Case | Valid | Tidak Valid |
+|----|-------|-------------------|-----------------|-------|------------|
+| 1 | Discuss Agent Module | 2 | 2 | 2 | 0 |
+| 2 | Search Agent Module | 3 | 3 | 3 | 0 |
+| 3 | General Agent Module | 2 | 2 | 2 | 0 |
+| 4 | Authentication Module | 2 | 3 | 3 | 0 |
+| 5 | Saved Paper Module | 2 | 2 | 2 | 0 |
+| 6 | Paper Extraction Module | 2 | 2 | 2 | 0 |
+| | **Total** | **13** | **14** | **14** | **0** |
 
-```python
-@bp.route('/check_status/<int:chat_id>')
-def check_status(chat_id):
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    chat = Chat.query.get(chat_id)
-    if not chat:
-        return jsonify({'error': 'Chat not found'}), 404
-
-    chat_session = ChatSession.query.get(chat.session_id)
-    if not chat_session or chat_session.user_id != session['user_id']:
-        return jsonify({'error': 'Unauthorized'}), 403
-
-    db_status = chat.search_status or 'pending'
-
-    if db_status == 'processing':
-        latest = SearchProgress.query.filter_by(chat_id=chat_id) \
-            .order_by(SearchProgress.step_number.desc()).first()
-        if latest and (datetime.utcnow() - latest.created_at).total_seconds() > SEARCH_STALE_SECONDS:
-            chat.search_status = 'error'
-            db.session.commit()
-            db_status = 'error'
-
-    result = {'status': db_status, 'is_processing': db_status == 'processing', ...}
-
-    if db_status in ('completed', 'cancelled'):
-        result['result'] = {'summary': summary, 'final_response': final_response}
-
-    if db_status == 'error':
-        result['error'] = 'Pencarian gagal atau timeout.'
-
-    return jsonify(result)
-```
-
-| No | Input | Output yang Diharapkan | Hasil | Status |
-|----|-------|----------------------|-------|--------|
-| 1 | Request tanpa sesi login | Response JSON error "Unauthorized" (HTTP 401) | Sesuai | ✅ Pass |
-| 2 | `chat_id` tidak ditemukan di database | Response JSON error "Chat not found" (HTTP 404) | Sesuai | ✅ Pass |
-| 3 | `chat_id` milik pengguna lain | Response JSON error "Unauthorized" (HTTP 403) | Sesuai | ✅ Pass |
-| 4 | Status `processing`, waktu berjalan > 180 detik | Status otomatis berubah menjadi `error` (stale detection) | Sesuai | ✅ Pass |
-| 5 | Status `completed` | Response berisi `summary` hasil pencarian dan `final_response` | Sesuai | ✅ Pass |
-| 6 | Status `error` | Response berisi pesan "Pencarian gagal atau timeout" | Sesuai | ✅ Pass |
-| 7 | Status `processing` (belum stale) | Response berisi `is_processing: true`, hasil belum tersedia | Sesuai | ✅ Pass |
-
----
-
-## 5. Unit: `_format_filter_description()` — `/app/routes/search_v2.py`
-
-Fungsi utilitas yang mengubah parameter filter pencarian menjadi deskripsi teks yang ditampilkan ke pengguna.
-
-```python
-def _format_filter_description(filters):
-    if not filters:
-        return ''
-    parts = []
-
-    df = filters.get('date_from') or ''
-    dt = filters.get('date_to') or ''
-    yf = df[:4] if df else ''
-    yt = dt[:4] if dt else ''
-
-    if yf and yt:
-        parts.append(f"tahun {yf}–{yt}")
-    elif yf:
-        parts.append(f"sejak tahun {yf}")
-    elif yt:
-        parts.append(f"sampai tahun {yt}")
-
-    pt = filters.get('paper_type') or filters.get('thesis_type')
-    if pt:
-        label = _PAPER_TYPE_LABELS.get(pt, pt.title())
-        parts.append(f"tipe {label}")
-
-    return ', '.join(parts)
-```
-
-| No | Input | Output yang Diharapkan | Hasil | Status |
-|----|-------|----------------------|-------|--------|
-| 1 | `None` (tidak ada filter) | String kosong `""` | Sesuai | ✅ Pass |
-| 2 | `date_from: 2020`, `date_to: 2024` | `"tahun 2020–2024"` | Sesuai | ✅ Pass |
-| 3 | `date_from: 2022` saja | `"sejak tahun 2022"` | Sesuai | ✅ Pass |
-| 4 | `date_to: 2023` saja | `"sampai tahun 2023"` | Sesuai | ✅ Pass |
-| 5 | `paper_type: thesis` | `"tipe Thesis"` | Sesuai | ✅ Pass |
-| 6 | `date_from: 2020`, `date_to: 2024`, `paper_type: thesis` | `"tahun 2020–2024, tipe Thesis"` | Sesuai | ✅ Pass |
-
----
-
-## Ringkasan Hasil Unit Testing
-
-| No | Unit / Fungsi | File | Jumlah Test Case | Pass | Fail |
-|----|--------------|------|-----------------|------|------|
-| 1 | `login()` | `/app/routes/auth.py` | 4 | 4 | 0 |
-| 2 | `register()` | `/app/routes/auth.py` | 6 | 6 | 0 |
-| 3 | `chat()` | `/app/routes/search_v2.py` | 6 | 6 | 0 |
-| 4 | `check_status()` | `/app/routes/search_v2.py` | 7 | 7 | 0 |
-| 5 | `_format_filter_description()` | `/app/routes/search_v2.py` | 6 | 6 | 0 |
-| | **Total** | | **29** | **29** | **0** |
-
-Seluruh unit yang diuji menghasilkan output yang sesuai dengan yang diharapkan. Tingkat keberhasilan pengujian mencapai **100%** (29/29 test case Pass).
+Seluruh skenario test case menghasilkan output aktual yang sesuai dengan output yang diharapkan. Tingkat keberhasilan pengujian White Box Testing mencapai **100%** (14/14 Valid).
