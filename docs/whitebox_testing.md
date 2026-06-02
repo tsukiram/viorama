@@ -11,6 +11,65 @@ Pengujian White Box Testing dilaksanakan menggunakan metode Unit Testing terhada
 | 1 | Discuss Agent | `_initialize_clients()` | API key valid | Klien Discuss Agent dan Search Agent berhasil diinisiasi | Kedua klien berhasil diinisiasi tanpa error | Valid |
 | 2 | Discuss Agent | `run_interactive_session()` | Pertanyaan pengguna tentang topik KTI | Dialog diproses, user intent teridentifikasi, respons dikirim ke Search Agent | Dialog berjalan, intent terdeteksi dan diteruskan dengan benar | Valid |
 
+### Alur Fungsi: `_initialize_clients()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B{session_id ada\ndi cache?}
+    B -- Ya --> C[Load clients dari cache\nreuse session]
+    C --> Z([End])
+    B -- Tidak --> D[Ambil API key aktif\ndari database]
+    D --> E{API key\ntersedia?}
+    E -- Tidak --> F[/Raise ValueError:\nAPI Key not found/]
+    E -- Ya --> G[Ambil model ID\ndari database]
+    G --> H{Model ID\ntersedia?}
+    H -- Tidak --> I[/Raise ValueError:\nAI Model not found/]
+    H -- Ya --> J[Load discuss_prompt &\nsearch_prompt dari file]
+    J --> K[Inisiasi discuss_client\n& discuss_agent]
+    K --> L[Inisiasi search_client\n& search_agent]
+    L --> M[Simpan ke session cache]
+    M --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style F fill:#f8cecc,stroke:#b85450
+    style I fill:#f8cecc,stroke:#b85450
+    style B fill:#fff2cc,stroke:#d6b656
+    style E fill:#fff2cc,stroke:#d6b656
+    style H fill:#fff2cc,stroke:#d6b656
+```
+
+### Alur Fungsi: `run_interactive_session()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Format input ke JSON\n& tambah ke history]
+    B --> C[GeminiThrottler.wait_if_needed]
+    C --> D[Kirim pesan ke discuss_agent]
+    D --> E{Request\nberhasil?}
+    E -- Tidak --> F{Retry tersedia\n& error closed?}
+    F -- Ya --> G[_recreate_clients\nretry += 1]
+    G --> C
+    F -- Tidak --> H[/Return error/]
+    E -- Ya --> I[process_discuss_response\n→ user_output, system_output]
+    I --> J[Log token usage\nke database]
+    J --> K[Update discuss_history\n& session cache]
+    K --> L{Ada error\ndari response?}
+    L -- Ya --> M[/Return error message/]
+    L -- Tidak --> N[/Return system_output,\nuser_output, None/]
+    N --> Z([End])
+    M --> Z
+    H --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style E fill:#fff2cc,stroke:#d6b656
+    style F fill:#fff2cc,stroke:#d6b656
+    style L fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/gemini_client/searching_v2.py
 
@@ -61,21 +120,15 @@ def run_interactive_session(self, user_input):
     max_retries = 2
     retry = 0
     last_err = ""
-
     while retry < max_retries:
         try:
             formatted = json.dumps(
-                [{"role": "user", "input": user_input}],
-                indent=4, ensure_ascii=False
-            )
+                [{"role": "user", "input": user_input}], indent=4, ensure_ascii=False)
             self.discuss_history.append({"role": "user", "content": user_input})
-
             from app.gemini_client.throttler import GeminiThrottler
             GeminiThrottler.wait_if_needed()
-
             response = self.discuss_agent.send_message(formatted)
             user_output, system_output, error = self.process_discuss_response(response.text)
-
             try:
                 from app.gemini_client.usage_logger import log_token_usage_sync
                 usage = response.usage_metadata
@@ -84,36 +137,28 @@ def run_interactive_session(self, user_input):
                         api_key_id=self.api_key_id,
                         input_tokens=usage.prompt_token_count or 0,
                         output_tokens=usage.candidates_token_count or 0,
-                        session_id=self.session_id,
-                        feature='discuss_v2',
+                        session_id=self.session_id, feature='discuss_v2',
                         input_content=user_input,
                         output_content=user_output if user_output else response.text,
                     )
             except Exception as log_err:
                 print(f"[SearchV2] usage log error: {log_err}")
-
             self.discuss_history.append({
                 "role": "assistant",
                 "content": user_output if user_output else response.text,
             })
             self._update_session_cache()
-
             if error:
                 return "", f"Error processing response: {error}", error
             return system_output or "", user_output or "", None
-
         except Exception as e:
             last_err = str(e)
             if "closed" in last_err.lower() and retry < max_retries - 1:
                 try:
-                    self._recreate_clients()
-                    retry += 1
-                    continue
+                    self._recreate_clients(); retry += 1; continue
                 except Exception as rec_err:
-                    print(f"[SearchV2] recreate error: {rec_err}")
-                    break
+                    print(f"[SearchV2] recreate error: {rec_err}"); break
             break
-
     return "", f"An error occurred: {last_err}", last_err
 ```
 
@@ -127,18 +172,69 @@ def run_interactive_session(self, user_input):
 | 4 | Search Agent | `search_papers()` | Deskripsi topik pencarian valid | Daftar paper relevan beserta metadata dikembalikan | Paper relevan berhasil ditemukan dan dikembalikan | Valid |
 | 5 | Search Agent | `process_keyword_search()` | Deskripsi pencarian dan chat_id valid | Keyword diproses, hasil pencarian di-inject ke konteks respons | Proses pencarian berjalan, hasil tersimpan ke database | Valid |
 
+### Alur Fungsi: `search_repository()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Build advanced URL\ndengan query & filter]
+    B --> C[HTTP GET ke Digilib\ntimeout=10s]
+    C --> D{Request\nberhasil?}
+    D -- Tidak --> E[/Print error &\nreturn empty list/]
+    D -- Ya --> F[Parse HTML\ndengan BeautifulSoup]
+    F --> G[Cari semua\ntr.ep_search_result]
+    G --> H[Ekstrak link\ndari setiap item]
+    H --> I[/Return list results/]
+    I --> Z([End])
+    E --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style D fill:#fff2cc,stroke:#d6b656
+```
+
+### Alur Fungsi: `process_keyword_search()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[GeminiThrottler.wait_if_needed]
+    B --> C[Kirim deskripsi ke\nsearch_agent]
+    C --> D[Log token usage]
+    D --> E[process_keyword_response\n→ utama & tambahan keywords]
+    E --> F{Ada keyword\ndihasilkan?}
+    F -- Tidak --> G[/Yield error:\ntidak ada keyword/]
+    F -- Ya --> H{Iterasi section:\nutama → tambahan}
+    H --> I{Search\ndibatalkan user?}
+    I -- Ya --> J[/Yield error: cancelled/]
+    I -- Tidak --> K[Yield section name]
+    K --> L[Jalankan search_papers\nsecara paralel ThreadPoolExecutor]
+    L --> M[Yield keyword_start\nuntuk setiap keyword]
+    M --> N[Kumpulkan hasil\ndari future.result]
+    N --> O[Tambahkan ke summary]
+    O --> P[Yield keyword_result]
+    P --> H
+    H -- Selesai --> Q[/Yield complete:\nsummary & all_empty flag/]
+    Q --> Z([End])
+    G --> Z
+    J --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style F fill:#fff2cc,stroke:#d6b656
+    style H fill:#fff2cc,stroke:#d6b656
+    style I fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/gemini_client/searching_v2.py
 
 def search_repository(self, query, max_results=None, filters=None):
     filters = filters or {}
     paper_type = filters.get('paper_type') or filters.get('thesis_type')
-    url = self._build_advanced_url(
-        query,
-        date_from=filters.get('date_from'),
-        date_to=filters.get('date_to'),
-        paper_type=paper_type,
-    )
+    url = self._build_advanced_url(query,
+        date_from=filters.get('date_from'), date_to=filters.get('date_to'),
+        paper_type=paper_type)
     try:
         r = requests.get(url, timeout=10)
         r.raise_for_status()
@@ -156,25 +252,20 @@ def search_repository(self, query, max_results=None, filters=None):
         print(f"[SearchV2] Repository search error for '{query}': {e}")
         return []
 
-
 def search_papers(self, query, filters=None):
     results = self.search_repository(query, filters=filters)
     if not results:
         return []
     return self.fetch_metadata(results)
 
-
 def process_keyword_search(self, user_description, chat_id=None, app_context=None, filters=None):
     try:
         from app.gemini_client.throttler import GeminiThrottler
         GeminiThrottler.wait_if_needed()
-
         agent_input = json.dumps(
             [{"role": "user_description", "input": user_description}],
-            indent=4, ensure_ascii=False
-        )
+            indent=4, ensure_ascii=False)
         response = self.search_agent.send_message(agent_input)
-
         try:
             from app.gemini_client.usage_logger import log_token_usage_sync
             usage = response.usage_metadata
@@ -183,80 +274,43 @@ def process_keyword_search(self, user_description, chat_id=None, app_context=Non
                     api_key_id=self.api_key_id,
                     input_tokens=usage.prompt_token_count or 0,
                     output_tokens=usage.candidates_token_count or 0,
-                    session_id=self.session_id,
-                    feature='search_v2',
-                    input_content=user_description,
-                    output_content=response.text,
-                )
+                    session_id=self.session_id, feature='search_v2',
+                    input_content=user_description, output_content=response.text)
         except Exception as log_err:
             print(f"[SearchV2] keyword usage log error: {log_err}")
-
         keywords = self.process_keyword_response(response.text)
         utama    = keywords.get("utama", [])
         tambahan = keywords.get("tambahan", [])
-
         if not utama and not tambahan:
-            yield {"error": "Search agent tidak menghasilkan kata kunci. Coba ulangi pencarian."}
+            yield {"error": "Search agent tidak menghasilkan kata kunci."}
             return
-
         summary = []
         had_any_result = False
-
-        sections = [("utama", utama), ("tambahan", tambahan)]
-        for section_name, kw_list in sections:
-            if not kw_list:
-                continue
+        for section_name, kw_list in [("utama", utama), ("tambahan", tambahan)]:
+            if not kw_list: continue
             if AcademicSearchSystemV2.is_cancelled(self.session_id):
-                yield {"error": "Search cancelled by user"}
-                return
-
+                yield {"error": "Search cancelled by user"}; return
             yield {"section": section_name}
-
             workers = min(KEYWORD_PARALLEL_WORKERS, len(kw_list))
             with ThreadPoolExecutor(max_workers=workers, thread_name_prefix='kw-search') as executor:
                 futures = [executor.submit(self.search_papers, kw, filters) for kw in kw_list]
-
                 for kw, future in zip(kw_list, futures):
                     if AcademicSearchSystemV2.is_cancelled(self.session_id):
-                        for f in futures:
-                            f.cancel()
-                        yield {"error": "Search cancelled by user"}
-                        return
-
+                        for f in futures: f.cancel()
+                        yield {"error": "Search cancelled by user"}; return
                     yield {"keyword_start": {"keyword": kw, "kw_type": section_name}}
-
                     try:
                         results = future.result()
                     except Exception as kw_err:
-                        print(f"[SearchV2] keyword '{kw}' search error: {kw_err}")
-                        results = []
-
-                    if results:
-                        had_any_result = True
-
-                    summary.append({
-                        "keyword":  kw,
-                        "kw_type":  section_name,
-                        "count":    len(results),
-                        "results":  results,
-                    })
-                    yield {"keyword_result": {
-                        "keyword":  kw,
-                        "kw_type":  section_name,
-                        "count":    len(results),
-                        "results":  results,
-                    }}
-
-        yield {
-            "complete":  True,
-            "all_empty": (not had_any_result),
-            "summary":   summary,
-        }
-
+                        print(f"[SearchV2] keyword '{kw}' error: {kw_err}"); results = []
+                    if results: had_any_result = True
+                    summary.append({"keyword": kw, "kw_type": section_name,
+                                    "count": len(results), "results": results})
+                    yield {"keyword_result": {"keyword": kw, "kw_type": section_name,
+                                              "count": len(results), "results": results}}
+        yield {"complete": True, "all_empty": (not had_any_result), "summary": summary}
     except Exception as e:
-        print(f"[SearchV2] keyword search error: {e}")
-        import traceback
-        traceback.print_exc()
+        import traceback; traceback.print_exc()
         yield {"error": str(e)}
 ```
 
@@ -269,6 +323,42 @@ def process_keyword_search(self, user_description, chat_id=None, app_context=Non
 | 6 | General Agent | `_initialize_client()` | API key valid | Klien General Agent berhasil diinisiasi | Klien berhasil diinisiasi tanpa error | Valid |
 | 7 | General Agent | `run_interactive_session()` | Pertanyaan tentang layanan perpustakaan | Respons berisi informasi layanan perpustakaan yang relevan | Jawaban sesuai konteks pertanyaan layanan perpustakaan | Valid |
 
+### Alur Fungsi: `_initialize_client()` & `run_interactive_session()`
+
+```mermaid
+flowchart TD
+    A([Start: _initialize_client]) --> B{session_id ada\ndi cache?}
+    B -- Ya --> C[Reuse agent\ndari cache]
+    C --> Z1([End])
+    B -- Tidak --> D[Ambil API key & model ID\ndari database]
+    D --> E{API key\ntersedia?}
+    E -- Tidak --> F[/Raise ValueError/]
+    E -- Ya --> G[Load general_prompt\ndari DB atau file]
+    G --> H[Inisiasi Gemini client\n& chat agent]
+    H --> I[Simpan ke cache\n_agents & _api_key_ids]
+    I --> Z1
+
+    A2([Start: run_interactive_session]) --> B2[Format input ke JSON]
+    B2 --> C2[GeminiThrottler.wait_if_needed]
+    C2 --> D2[agent.send_message]
+    D2 --> E2{Request\nberhasil?}
+    E2 -- Tidak --> F2[/Print error & return None/]
+    E2 -- Ya --> G2[Log token usage\nke database]
+    G2 --> H2[/Return response.text/]
+    H2 --> Z2([End])
+    F2 --> Z2
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z1 fill:#f8cecc,stroke:#b85450
+    style A2 fill:#d5e8d4,stroke:#82b366
+    style Z2 fill:#f8cecc,stroke:#b85450
+    style B fill:#fff2cc,stroke:#d6b656
+    style E fill:#fff2cc,stroke:#d6b656
+    style E2 fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/gemini_client/general_knowledge.py
 
@@ -277,36 +367,27 @@ def _initialize_client(self):
         self.agent = GeneralKnowledgeSystem._agents[self.session_id]
         self.api_key_id = GeneralKnowledgeSystem._api_key_ids.get(self.session_id)
         return
-
     self.api_key = self._get_active_api_key()
     if not self.api_key:
         raise ValueError("Active API Key not found in database (APIKey table)")
-
-    model_id   = self._get_active_model_id()
+    model_id    = self._get_active_model_id()
     prompt_text = self._get_db_setting('general_prompt')
     if not prompt_text:
         prompt_text = self._load_prompt('app/prompts/base_information.txt')
-
     self.client = genai.Client(api_key=self.api_key)
     self.agent  = self.client.chats.create(
         model=model_id,
-        config=types.GenerateContentConfig(system_instruction=prompt_text)
-    )
-    GeneralKnowledgeSystem._agents[self.session_id]   = self.agent
+        config=types.GenerateContentConfig(system_instruction=prompt_text))
+    GeneralKnowledgeSystem._agents[self.session_id]      = self.agent
     GeneralKnowledgeSystem._api_key_ids[self.session_id] = self.api_key_id
-
 
 def run_interactive_session(self, user_input):
     try:
         formatted_input = json.dumps(
-            [{"role": "user", "input": user_input}],
-            indent=4, ensure_ascii=False
-        )
+            [{"role": "user", "input": user_input}], indent=4, ensure_ascii=False)
         from app.gemini_client.throttler import GeminiThrottler
         GeminiThrottler.wait_if_needed()
-
         response = self.agent.send_message(formatted_input)
-
         try:
             from app.gemini_client.usage_logger import log_token_usage_sync
             usage_meta = response.usage_metadata
@@ -315,14 +396,10 @@ def run_interactive_session(self, user_input):
                     api_key_id=self.api_key_id,
                     input_tokens=usage_meta.prompt_token_count or 0,
                     output_tokens=usage_meta.candidates_token_count or 0,
-                    session_id=self.session_id,
-                    feature='general',
-                    input_content=user_input,
-                    output_content=response.text
-                )
+                    session_id=self.session_id, feature='general',
+                    input_content=user_input, output_content=response.text)
         except Exception as log_err:
             print(f"[GeneralKnowledge] Could not log usage: {log_err}")
-
         return response.text
     except Exception as e:
         print(f"Error in interactive session for session {self.session_id}: {e}")
@@ -339,6 +416,64 @@ def run_interactive_session(self, user_input):
 | 9 | Authentication | `login()` | Username atau password tidak valid | Flash error "Username atau password salah", redirect ke halaman login | Pesan error ditampilkan, pengguna tidak dapat masuk | Valid |
 | 10 | Authentication | `register()` | Data registrasi lengkap dan valid | Akun baru tersimpan di database, redirect ke halaman login | Akun berhasil dibuat, pengguna diarahkan ke login | Valid |
 
+### Alur Fungsi: `login()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B{method == POST?}
+    B -- Tidak --> C[/Render login.html\nHTTP 200/]
+    B -- Ya --> D[Ambil username &\npassword dari form]
+    D --> E[Query user dari\ndatabase]
+    E --> F{User ada &\npassword benar?}
+    F -- Ya --> G[session user_id = user.id]
+    G --> H[/Redirect ke beranda/]
+    F -- Tidak --> I[Flash error:\nUsername atau password salah]
+    I --> J[/Redirect ke\nhalaman login/]
+    H --> Z([End])
+    J --> Z
+    C --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style B fill:#fff2cc,stroke:#d6b656
+    style F fill:#fff2cc,stroke:#d6b656
+```
+
+### Alur Fungsi: `register()`
+
+```mermaid
+flowchart TD
+    A([Start]) --> B{method == POST?}
+    B -- Tidak --> C[/Render register.html/]
+    B -- Ya --> D[Ambil username, password,\nconfirm_password]
+    D --> E{Ada field\nkosong?}
+    E -- Ya --> ERR[Flash error message]
+    E -- Tidak --> F{len password\n< 8 karakter?}
+    F -- Ya --> ERR
+    F -- Tidak --> G{Password !=\nconfirm password?}
+    G -- Ya --> ERR
+    G -- Tidak --> H{Username sudah\ndigunakan?}
+    H -- Ya --> ERR
+    ERR --> I[/Render register.html\ndengan pesan error/]
+    H -- Tidak --> J[Hash password]
+    J --> K[Buat User baru\n& simpan ke DB]
+    K --> L[Flash sukses]
+    L --> M[/Redirect ke\nhalaman login/]
+    I --> Z([End])
+    M --> Z
+    C --> Z
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z fill:#f8cecc,stroke:#b85450
+    style B fill:#fff2cc,stroke:#d6b656
+    style E fill:#fff2cc,stroke:#d6b656
+    style F fill:#fff2cc,stroke:#d6b656
+    style G fill:#fff2cc,stroke:#d6b656
+    style H fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/routes/auth.py
 
@@ -348,16 +483,13 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('home.home'))
         else:
             flash('Username atau password salah.', 'danger')
             return redirect(url_for('auth.login'))
-
     return render_template('login.html')
-
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -365,7 +497,6 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-
         error = None
         if not username or not password or not confirm_password:
             error = 'Semua field wajib diisi.'
@@ -375,18 +506,15 @@ def register():
             error = 'Password tidak cocok.'
         elif User.query.filter_by(username=username).first():
             error = f"Username '{username}' sudah digunakan."
-
         if error:
             flash(error, 'danger')
             return render_template('register.html')
-
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Akun berhasil dibuat! Silakan masuk.', 'success')
         return redirect(url_for('auth.login'))
-
     return render_template('register.html')
 ```
 
@@ -399,6 +527,44 @@ def register():
 | 11 | Saved Paper | `index()` | User login, terdapat paper yang telah disimpan | Halaman daftar paper tersimpan ditampilkan beserta metadata | Daftar paper tersimpan berhasil ditampilkan | Valid |
 | 12 | Saved Paper | `remove_paper()` | Kode eprint paper valid dan milik user | Paper dihapus dari daftar tersimpan | Paper berhasil dihapus dari database | Valid |
 
+### Alur Fungsi: `index()` & `remove_paper()`
+
+```mermaid
+flowchart TD
+    A([Start: index]) --> B{user_id ada\ndi session?}
+    B -- Tidak --> C[/Redirect ke login/]
+    B -- Ya --> D[Query user dari DB]
+    D --> E{User\nditemukan?}
+    E -- Tidak --> F[session.clear]
+    F --> C
+    E -- Ya --> G[Query SavedPaper\nberdasarkan user_id]
+    G --> H[/Render saved.html\ndengan daftar paper/]
+    H --> Z1([End])
+    C --> Z1
+
+    A2([Start: remove_paper]) --> B2{user_id ada\ndi session?}
+    B2 -- Tidak --> C2[/Return JSON 401\nUnauthorized/]
+    B2 -- Ya --> D2[Query paper berdasarkan\nuser_id & eprint_code]
+    D2 --> E2{Paper\nditemukan?}
+    E2 -- Tidak --> F2[/Return JSON 404\nNot Found/]
+    E2 -- Ya --> G2[db.session.delete\ndb.session.commit]
+    G2 --> H2[/Return JSON success\nPaper removed/]
+    H2 --> Z2([End])
+    C2 --> Z2
+    F2 --> Z2
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z1 fill:#f8cecc,stroke:#b85450
+    style A2 fill:#d5e8d4,stroke:#82b366
+    style Z2 fill:#f8cecc,stroke:#b85450
+    style B fill:#fff2cc,stroke:#d6b656
+    style E fill:#fff2cc,stroke:#d6b656
+    style B2 fill:#fff2cc,stroke:#d6b656
+    style E2 fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/routes/saved.py
 
@@ -406,39 +572,28 @@ def register():
 def index():
     if 'user_id' not in session:
         return redirect(url_for('auth.login'))
-
     user = User.query.get(session['user_id'])
     if user is None:
         session.clear()
         return redirect(url_for('auth.login'))
-
     saved_papers = SavedPaper.query.filter_by(
-        user_id=user.id
-    ).order_by(desc(SavedPaper.id)).all()
-
+        user_id=user.id).order_by(desc(SavedPaper.id)).all()
     return render_template('saved.html', user=user, saved_papers=saved_papers)
-
 
 @bp.route('/remove/<string:eprint_code>', methods=['POST'])
 def remove_paper(eprint_code):
     if 'user_id' not in session:
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
     paper_to_delete = SavedPaper.query.filter_by(
-        user_id=session['user_id'],
-        eprint_code=eprint_code
-    ).first()
-
+        user_id=session['user_id'], eprint_code=eprint_code).first()
     if not paper_to_delete:
         return jsonify({'success': False, 'error': 'Paper not found in your saved list'}), 404
-
     try:
         db.session.delete(paper_to_delete)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Paper removed successfully.'})
     except Exception as e:
         db.session.rollback()
-        print(f"Error removing saved paper: {e}")
         return jsonify({'success': False, 'error': 'An internal error occurred.'}), 500
 ```
 
@@ -451,27 +606,54 @@ def remove_paper(eprint_code):
 | 13 | Paper Extraction | `extract_metadata()` | HTML halaman paper valid dari repositori Digilib | Metadata judul, abstrak, tahun, dan kode eprint berhasil diekstrak | Metadata paper berhasil diekstrak sesuai struktur HTML | Valid |
 | 14 | Paper Extraction | `fetch_metadata()` | Daftar URL hasil pencarian valid | Metadata lengkap untuk setiap paper dalam daftar dikembalikan | Metadata seluruh paper berhasil diambil | Valid |
 
+### Alur Fungsi: `extract_metadata()` & `fetch_metadata()`
+
+```mermaid
+flowchart TD
+    A([Start: extract_metadata]) --> B[Parse HTML\ndengan BeautifulSoup]
+    B --> C[Cari elemen citation\np style margin-bottom]
+    C --> D[Cari elemen abstract\nh2 Abstract → p]
+    D --> E[Cari meta eprints.eprintid\n→ ekstrak code]
+    E --> F[/Return dict:\ncitation, abstract, code/]
+    F --> Z1([End])
+
+    A2([Start: fetch_metadata]) --> B2[Inisiasi list out = ]
+    B2 --> C2{Masih ada item\ndi results?}
+    C2 -- Tidak --> G2[/Return out/]
+    C2 -- Ya --> D2[HTTP GET halaman paper\ntimeout=10s]
+    D2 --> E2{Request\nberhasil?}
+    E2 -- Tidak --> F2[Print error,\nlanjut iterasi]
+    F2 --> C2
+    E2 -- Ya --> H2[Panggil extract_metadata\n& tambahkan ke out]
+    H2 --> C2
+    G2 --> Z2([End])
+
+    style A fill:#d5e8d4,stroke:#82b366
+    style Z1 fill:#f8cecc,stroke:#b85450
+    style A2 fill:#d5e8d4,stroke:#82b366
+    style Z2 fill:#f8cecc,stroke:#b85450
+    style C2 fill:#fff2cc,stroke:#d6b656
+    style E2 fill:#fff2cc,stroke:#d6b656
+```
+
+### Kode Fungsi
+
 ```python
 # app/gemini_client/searching_v2.py
 
 def extract_metadata(self, html):
     soup = BeautifulSoup(html, 'html.parser')
-
     cite = soup.find('p', style=re.compile(r'margin-bottom:\s*1em'))
     citation = cite.get_text(strip=True) if cite else "No citation available"
-
     abstract = "No abstract available"
     ab_h2 = soup.find('h2', string=re.compile(r'Abstract', re.IGNORECASE))
     if ab_h2:
         ab_p = ab_h2.find_next('p')
         if ab_p:
             abstract = ab_p.get_text(strip=True)
-
     meta = soup.find('meta', attrs={'name': 'eprints.eprintid'})
     code = meta['content'].strip() if meta else ""
-
     return {"citation": citation, "abstract": abstract, "code": code}
-
 
 def fetch_metadata(self, search_results):
     out = []
