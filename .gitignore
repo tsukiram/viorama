@@ -47,6 +47,14 @@ add_keterangan_blackbox.py
 fix_*.py
 merge_db.py
 
+# Script utility lokal
+docx_to_md.py
+md_to_docx.py
+outline_to_docx.py
+test_advanced_search.py
+test_title.py
+panduan_pengujian_cm.py
+
 # OS / editor
 .DS_Store
 .vscode/
