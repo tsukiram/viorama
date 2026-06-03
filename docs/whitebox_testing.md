@@ -1,15 +1,15 @@
 # White Box Testing — Viorama.site
 
-Pengujian White Box Testing dilaksanakan menggunakan metode Unit Testing terhadap enam modul utama sistem. Setiap fungsi inti pada masing-masing modul diuji secara independen dengan menyusun skenario test case berdasarkan kelas masukan valid dan tidak valid, kemudian membandingkan keluaran aktual dengan keluaran yang diharapkan. Total terdapat 14 skenario test case yang dieksekusi dalam pengujian White Box Testing ini.
+Pengujian White Box Testing dilaksanakan menggunakan metode Unit Testing terhadap enam modul utama sistem. Setiap fungsi inti pada masing-masing modul diuji secara independen dengan menyusun skenario test case berdasarkan kelas masukan valid dan tidak valid, sehingga setiap fungsi dapat diverifikasi kesesuaiannya dengan spesifikasi yang telah ditetapkan. Total terdapat 14 skenario test case yang dirancang dalam pengujian White Box Testing ini.
 
 ---
 
-## Tabel 1 — Hasil Pengujian Discuss Agent Module
+## Tabel 1 — Skenario Pengujian Discuss Agent Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 1 | Discuss Agent | `_initialize_clients()` | API key valid | Klien Discuss Agent dan Search Agent berhasil diinisiasi | Kedua klien berhasil diinisiasi tanpa error | Valid |
-| 2 | Discuss Agent | `run_interactive_session()` | Pertanyaan pengguna tentang topik KTI | Dialog diproses, user intent teridentifikasi, respons dikirim ke Search Agent | Dialog berjalan, intent terdeteksi dan diteruskan dengan benar | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 1 | Discuss Agent | `_initialize_clients()` | API key valid | Klien Discuss Agent dan Search Agent berhasil diinisiasi |
+| 2 | Discuss Agent | `run_interactive_session()` | Pertanyaan pengguna tentang topik KTI | Dialog diproses, user intent teridentifikasi, respons dikirim ke Search Agent |
 
 ### Alur Fungsi: `_initialize_clients()`
 
@@ -164,13 +164,13 @@ def run_interactive_session(self, user_input):
 
 ---
 
-## Tabel 2 — Hasil Pengujian Search Agent Module
+## Tabel 2 — Skenario Pengujian Search Agent Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 3 | Search Agent | `search_repository()` | Query kata kunci valid | Daftar hasil pencarian dari repositori Digilib dikembalikan | Hasil pencarian berhasil diambil dari Digilib | Valid |
-| 4 | Search Agent | `search_papers()` | Deskripsi topik pencarian valid | Daftar paper relevan beserta metadata dikembalikan | Paper relevan berhasil ditemukan dan dikembalikan | Valid |
-| 5 | Search Agent | `process_keyword_search()` | Deskripsi pencarian dan chat_id valid | Keyword diproses, hasil pencarian di-inject ke konteks respons | Proses pencarian berjalan, hasil tersimpan ke database | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 3 | Search Agent | `search_repository()` | Query kata kunci valid | Daftar hasil pencarian dari repositori Digilib dikembalikan |
+| 4 | Search Agent | `search_papers()` | Deskripsi topik pencarian valid | Daftar paper relevan beserta metadata dikembalikan |
+| 5 | Search Agent | `process_keyword_search()` | Deskripsi pencarian dan chat_id valid | Keyword diproses, hasil pencarian di-inject ke konteks respons |
 
 ### Alur Fungsi: `search_repository()`
 
@@ -316,12 +316,12 @@ def process_keyword_search(self, user_description, chat_id=None, app_context=Non
 
 ---
 
-## Tabel 3 — Hasil Pengujian General Agent Module
+## Tabel 3 — Skenario Pengujian General Agent Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 6 | General Agent | `_initialize_client()` | API key valid | Klien General Agent berhasil diinisiasi | Klien berhasil diinisiasi tanpa error | Valid |
-| 7 | General Agent | `run_interactive_session()` | Pertanyaan tentang layanan perpustakaan | Respons berisi informasi layanan perpustakaan yang relevan | Jawaban sesuai konteks pertanyaan layanan perpustakaan | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 6 | General Agent | `_initialize_client()` | API key valid | Klien General Agent berhasil diinisiasi |
+| 7 | General Agent | `run_interactive_session()` | Pertanyaan tentang layanan perpustakaan | Respons berisi informasi layanan perpustakaan yang relevan |
 
 ### Alur Fungsi: `_initialize_client()` & `run_interactive_session()`
 
@@ -408,13 +408,13 @@ def run_interactive_session(self, user_input):
 
 ---
 
-## Tabel 4 — Hasil Pengujian Authentication Module
+## Tabel 4 — Skenario Pengujian Authentication Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 8 | Authentication | `login()` | Username dan password valid | Session user_id tersimpan, redirect ke halaman beranda | Session tersimpan, pengguna diarahkan ke beranda | Valid |
-| 9 | Authentication | `login()` | Username atau password tidak valid | Flash error "Username atau password salah", redirect ke halaman login | Pesan error ditampilkan, pengguna tidak dapat masuk | Valid |
-| 10 | Authentication | `register()` | Data registrasi lengkap dan valid | Akun baru tersimpan di database, redirect ke halaman login | Akun berhasil dibuat, pengguna diarahkan ke login | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 8 | Authentication | `login()` | Username dan password valid | Session user_id tersimpan, redirect ke halaman beranda |
+| 9 | Authentication | `login()` | Username atau password tidak valid | Flash error "Username atau password salah", redirect ke halaman login |
+| 10 | Authentication | `register()` | Data registrasi lengkap dan valid | Akun baru tersimpan di database, redirect ke halaman login |
 
 ### Alur Fungsi: `login()`
 
@@ -520,12 +520,12 @@ def register():
 
 ---
 
-## Tabel 5 — Hasil Pengujian Saved Paper Module
+## Tabel 5 — Skenario Pengujian Saved Paper Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 11 | Saved Paper | `index()` | User login, terdapat paper yang telah disimpan | Halaman daftar paper tersimpan ditampilkan beserta metadata | Daftar paper tersimpan berhasil ditampilkan | Valid |
-| 12 | Saved Paper | `remove_paper()` | Kode eprint paper valid dan milik user | Paper dihapus dari daftar tersimpan | Paper berhasil dihapus dari database | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 11 | Saved Paper | `index()` | User login, terdapat paper yang telah disimpan | Halaman daftar paper tersimpan ditampilkan beserta metadata |
+| 12 | Saved Paper | `remove_paper()` | Kode eprint paper valid dan milik user | Paper dihapus dari daftar tersimpan |
 
 ### Alur Fungsi: `index()` & `remove_paper()`
 
@@ -599,12 +599,12 @@ def remove_paper(eprint_code):
 
 ---
 
-## Tabel 6 — Hasil Pengujian Paper Extraction Module
+## Tabel 6 — Skenario Pengujian Paper Extraction Module
 
-| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan | Output Aktual | Status |
-|----|-------|--------|-------------|----------------------|---------------|--------|
-| 13 | Paper Extraction | `extract_metadata()` | HTML halaman paper valid dari repositori Digilib | Metadata judul, abstrak, tahun, dan kode eprint berhasil diekstrak | Metadata paper berhasil diekstrak sesuai struktur HTML | Valid |
-| 14 | Paper Extraction | `fetch_metadata()` | Daftar URL hasil pencarian valid | Metadata lengkap untuk setiap paper dalam daftar dikembalikan | Metadata seluruh paper berhasil diambil | Valid |
+| No | Modul | Fungsi | Kelas Input | Output yang Diharapkan |
+|----|-------|--------|-------------|----------------------|
+| 13 | Paper Extraction | `extract_metadata()` | HTML halaman paper valid dari repositori Digilib | Metadata judul, abstrak, tahun, dan kode eprint berhasil diekstrak |
+| 14 | Paper Extraction | `fetch_metadata()` | Daftar URL hasil pencarian valid | Metadata lengkap untuk setiap paper dalam daftar dikembalikan |
 
 ### Alur Fungsi: `extract_metadata()` & `fetch_metadata()`
 
@@ -672,14 +672,14 @@ def fetch_metadata(self, search_results):
 
 ## Ringkasan Hasil Pengujian White Box Testing
 
-| No | Modul | Jumlah Fungsi Diuji | Jumlah Test Case | Valid | Tidak Valid |
-|----|-------|-------------------|-----------------|-------|------------|
+| No | Modul | Jumlah Fungsi Diuji | Jumlah Test Case | Valid |
+|----|-------|-------------------|-----------------|
 | 1 | Discuss Agent Module | 2 | 2 | 2 | 0 |
 | 2 | Search Agent Module | 3 | 3 | 3 | 0 |
 | 3 | General Agent Module | 2 | 2 | 2 | 0 |
 | 4 | Authentication Module | 2 | 3 | 3 | 0 |
 | 5 | Saved Paper Module | 2 | 2 | 2 | 0 |
 | 6 | Paper Extraction Module | 2 | 2 | 2 | 0 |
-| | **Total** | **13** | **14** | **14** | **0** |
+| | **Total** | **13** | **14** |
 
-Seluruh skenario test case menghasilkan output aktual yang sesuai dengan output yang diharapkan. Tingkat keberhasilan pengujian White Box Testing mencapai **100%** (14/14 Valid).
+Seluruh 14 skenario test case telah dirancang untuk memverifikasi kesesuaian logika internal setiap fungsi dengan spesifikasi yang ditetapkan.
