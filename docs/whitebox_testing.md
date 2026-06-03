@@ -670,16 +670,16 @@ def fetch_metadata(self, search_results):
 
 ---
 
-## Ringkasan Hasil Pengujian White Box Testing
+## Ringkasan Skenario Pengujian White Box Testing
 
-| No | Modul | Jumlah Fungsi Diuji | Jumlah Test Case | Valid |
+| No | Modul | Fungsi yang Diuji | Jumlah Skenario |
 |----|-------|-------------------|-----------------|
-| 1 | Discuss Agent Module | 2 | 2 | 2 | 0 |
-| 2 | Search Agent Module | 3 | 3 | 3 | 0 |
-| 3 | General Agent Module | 2 | 2 | 2 | 0 |
-| 4 | Authentication Module | 2 | 3 | 3 | 0 |
-| 5 | Saved Paper Module | 2 | 2 | 2 | 0 |
-| 6 | Paper Extraction Module | 2 | 2 | 2 | 0 |
-| | **Total** | **13** | **14** |
+| 1 | Discuss Agent Module | `_initialize_clients()`, `run_interactive_session()` | 2 |
+| 2 | Search Agent Module | `search_repository()`, `search_papers()`, `process_keyword_search()` | 3 |
+| 3 | General Agent Module | `_initialize_client()`, `run_interactive_session()` | 2 |
+| 4 | Authentication Module | `login()`, `register()` | 3 |
+| 5 | Saved Paper Module | `index()`, `remove_paper()` | 2 |
+| 6 | Paper Extraction Module | `extract_metadata()`, `fetch_metadata()` | 2 |
+| | **Total** | **13 fungsi** | **14 skenario** |
 
-Seluruh 14 skenario test case telah dirancang untuk memverifikasi kesesuaian logika internal setiap fungsi dengan spesifikasi yang ditetapkan.
+Seluruh 14 skenario dirancang untuk memverifikasi kesesuaian logika internal setiap fungsi terhadap spesifikasi yang telah ditetapkan.
